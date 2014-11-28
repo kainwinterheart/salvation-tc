@@ -123,10 +123,7 @@ sub tokenize_type_str_impl {
 
             if( $word eq '' ) {
 
-                unless(
-                    exists $stack[ $#stack ] -> { 'class' }
-                    && $stack[ $#stack ] -> { 'class' } -> isa( 'Salvation::TC::Meta::Type::Parametrized' )
-                ) {
+                unless( exists $stack[ $#stack ] -> { 'class' } ) {
 
                     die( 'Invalid type description' );
                 }

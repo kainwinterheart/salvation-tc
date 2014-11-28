@@ -9,26 +9,41 @@ use Class::Inspector ();
 our $VERSION = 0.01;
 our $BACKEND;
 
-sub detect {
+{
+    my $loaded;
 
-    return $BACKEND if defined $BACKEND;
+    sub detect {
 
-    if( eval {
-        require Salvation::TC::Parser::XS;
-        require XSLoader;
+        load_backend();
+        return $BACKEND if defined $BACKEND;
 
-        XSLoader::load( 'Salvation::TC::Parser', $Salvation::TC::Parser::XS::VERSION );
-        1;
-    } ) {
+        if( eval { require Salvation::TC::Parser::XS; 1 } ) {
 
-        $BACKEND = 'Salvation::TC::Parser::XS';
+            $BACKEND = 'Salvation::TC::Parser::XS';
+            $loaded = 1;
 
-    } else {
+        } else {
 
-        $BACKEND = 'Salvation::TC::Parser::PP';
+            $BACKEND = 'Salvation::TC::Parser::PP';
+        }
+
+        load_backend();
+        return $BACKEND;
     }
 
-    return $BACKEND;
+    sub load_backend {
+
+        return unless defined $BACKEND;
+
+        unless( $loaded ) {
+
+            $loaded = 1;
+
+            Module::Load::load( $BACKEND );
+        }
+
+        return;
+    }
 }
 
 {

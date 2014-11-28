@@ -13,6 +13,10 @@ BEGIN {
 
 our $VERSION = 0.01;
 
+require XSLoader;
+
+XSLoader::load( 'Salvation::TC::Parser', $VERSION );
+
 1;
 
 __END__
