@@ -38,17 +38,11 @@ AV * tokens_to_perl( my_stack_t * stack ) {
     if( stack == 0 ) croak( "Parser error\n" );
 
     int size = stack -> size;
-    // printf( "size: %d\n", size );
 
     AV * perl_tokens = newAV();
 
     for( int i = 0; i < size; ++i ) {
 
-        // short token_type = ((abstract_type_t*)(stack[ i + 1 ])) -> token_type;
-        // printf( "%d: %d\n", i, token_type );
-        // printf( "%d: %s\n", i, ((basic_type_t*)(stack[ i + 1 ])) -> type );
-
-        // printf( "%d:\n", i );
         HV * perl_token = token_to_perl( stack -> data[ i ] );
 
         av_push( perl_tokens, newRV_noinc( (SV*)perl_token ) );
@@ -76,8 +70,6 @@ static HV * token_to_perl( intptr_t token ) {
 
     HV * perl_token = newHV();
     short token_type = ((abstract_type_t*)token) -> token_type;
-
-    // printf( "%d\n", token_type );
 
     if( token_type == TOKEN_TYPE_BASIC ) {
 
@@ -182,6 +174,77 @@ tokenizer_options_t * perl_to_options( HV * options ) {
 AV * mortalize_av( AV * v ) {
 
     return (AV*)sv_2mortal( (SV*)v );
+}
+
+static void free_token( intptr_t token );
+
+void free_stack_arr( intptr_t * stack, int size ) {
+
+    for( int i = 0; i < size; ++i ) {
+
+        free_token( stack[ i ] );
+    }
+
+    free( stack );
+}
+
+void free_my_stack( my_stack_t * stack ) {
+
+    int size = stack -> size;
+
+    free_stack_arr( stack -> data, stack -> size );
+    free( stack );
+}
+
+static void free_token( intptr_t token ) {
+
+    short token_type = ((abstract_type_t*)token) -> token_type;
+
+    if( token_type == TOKEN_TYPE_BASIC ) {
+
+        free( ((basic_type_t*)token) -> type );
+        free((basic_type_t*)token);
+
+    } else if( token_type == TOKEN_TYPE_MAYBE ) {
+
+        free_my_stack( ((maybe_type_t*)token) -> stack );
+        free((maybe_type_t*)token);
+
+    } else if( token_type == TOKEN_TYPE_PARAMETRIZABLE ) {
+
+        free( ((parametrizable_type_t*)token) -> class );
+        free_my_stack( ((parametrizable_type_t*)token) -> param );
+        free_my_stack( ((parametrizable_type_t*)token) -> stack );
+        free((parametrizable_type_t*)token);
+
+    } else if( token_type == TOKEN_TYPE_SIGNED ) {
+
+        free( ((signed_type_t*)token) -> source );
+        free_token( ((signed_type_t*)token) -> type );
+        free_my_stack( ((signed_type_t*)token) -> signature );
+        free((signed_type_t*)token);
+
+    } else if( token_type == TOKEN_TYPE_SIGNATURE_ITEM ) {
+
+        signature_param_t * param = ((signature_item_t*)token) -> param;
+
+        free_my_stack( ((signature_item_t*)token) -> type );
+        free( param -> name );
+        free( param );
+        free((signature_item_t*)token);
+
+    } else if ( token_type == TOKEN_TYPE_LENGTH ) {
+
+        free_token( ((length_type_t*)token) -> type );
+        if( ((length_type_t*)token) -> has_min == 1 ) free( ((length_type_t*)token) -> min );
+        if( ((length_type_t*)token) -> has_max == 1 ) free( ((length_type_t*)token) -> max );
+        free((length_type_t*)token);
+    }
+}
+
+void p_die( char * s ) {
+
+    croak( "%s", s );
 }
 
 #endif /* end of include guard: _HELPER_C_ */

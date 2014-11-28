@@ -1,12 +1,11 @@
 #ifndef _TOKENIZER_C_
 #define _TOKENIZER_C_
 
+#include "tokenizer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-
-#include "helper.h"
 
 static inline void push_stack( intptr_t ** stack, int length, intptr_t token ) {
 
@@ -24,6 +23,8 @@ static inline char * append( char * s, char c ) {
 
     buf[ len ] = c;
     buf[ len + 1 ] = '\0';
+
+    free( s );
 
     return strdup( buf );
 }
@@ -59,11 +60,20 @@ static inline short is_digit( char chr ) {
 
 static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t * options );
 
+static inline char * zero_str() {
+
+    char * word = malloc( 1 );
+
+    word[ 0 ] = '\0';
+
+    return word;
+}
+
 static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * options ) {
 
     intptr_t * stack = malloc( sizeof( *stack ) );
-    char * word = "\0";
-    char * parametrizable_type = "\0";
+    char * word = zero_str();
+    char * parametrizable_type = zero_str();
     int stack_size = 0;
     int pos = 0;
     int length = strlen( s );
@@ -86,8 +96,10 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 if( strlen( parametrizable_type ) == 0 ) {
 
-                    printf( "Can't parametrize type %s", word );
-                    return 0;
+                    free_stack_arr( stack, stack_size );
+                    char * _s;
+                    sprintf( _s, "Can't parametrize type %s\n", word );
+                    p_die( _s );
                 }
             }
         }
@@ -98,8 +110,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 if( stack_size == 0 ) {
 
-                    printf( "Invalid type string: | can't be a first character of type name\n" );
-                    return 0;
+                    free_stack_arr( stack, stack_size );
+                    p_die( "Invalid type string: | can't be a first character of type name\n" );
 
                 } else {
 
@@ -113,8 +125,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                         || ( token_type == TOKEN_TYPE_LENGTH )
                     ) ) {
 
-                        printf( "Invalid type string: | should follow a type name\n" );
-                        return 0;
+                        free_stack_arr( stack, stack_size );
+                        p_die( "Invalid type string: | should follow a type name\n" );
                     }
                 }
 
@@ -128,13 +140,14 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                word = "\0";
+                free( word );
+                word = zero_str();
             }
 
         } else if( chr == '[' ) {
 
             int cnt = 1;
-            char * substr = "\0";
+            char * substr = zero_str();
 
             while( pos < length ) {
 
@@ -150,8 +163,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
             if( ( strlen( substr ) == 0 ) || ( strlen( word ) == 0 ) ) {
 
-                printf( "Invalid type parametrization: no type name or no parameter name\n" );
-                return 0;
+                free_stack_arr( stack, stack_size );
+                p_die( "Invalid type parametrization: no type name or no parameter name\n" );
             }
 
             if( strlen( parametrizable_type ) == 0 ) {
@@ -185,10 +198,13 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                parametrizable_type = "\0";
+                free( parametrizable_type );
+                parametrizable_type = zero_str();
             }
 
-            word = "\0";
+            free( word );
+            word = zero_str();
+            free( substr );
 
         } else if( chr == '(' ) {
 
@@ -196,8 +212,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 if( stack_size == 0 ) {
 
-                    printf( "Invalid type description: ( can't be a first character of type name\n" );
-                    return 0;
+                    free_stack_arr( stack, stack_size );
+                    p_die( "Invalid type description: ( can't be a first character of type name\n" );
 
                 } else {
 
@@ -208,8 +224,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                         ( token_type == TOKEN_TYPE_PARAMETRIZABLE )
                     ) ) {
 
-                        printf( "Invalid type description: ( should follow a type name\n" );
-                        return 0;
+                        free_stack_arr( stack, stack_size );
+                        p_die( "Invalid type description: ( should follow a type name\n" );
                     }
                 }
 
@@ -223,11 +239,12 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                word = "\0";
+                free( word );
+                word = zero_str();
             }
 
             int cnt = 1;
-            char * substr = "\0";
+            char * substr = zero_str();
 
             substr = append( substr, chr );
 
@@ -255,6 +272,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             token -> source = copy_str( substr );
 
             stack[ stack_size - 1 ] = (intptr_t)token;
+            free( substr );
 
         } else if( chr == '{' ) {
 
@@ -268,17 +286,16 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                word = "\0";
+                free( word );
+                word = zero_str();
             }
-
-            char * substr = "\0";
 
             short has_min = 0;
             short has_max = 0;
             short got_delim = 0;
 
-            char * min = "\0";
-            char * max = "\0";
+            char * min = zero_str();
+            char * max = zero_str();
 
             while( pos < length ) {
 
@@ -291,8 +308,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                     if( got_delim == 1 ) {
 
-                        printf( "Invalid length limits: only one delimiter allowed\n" );
-                        return 0;
+                        free_stack_arr( stack, stack_size );
+                        p_die( "Invalid length limits: only one delimiter allowed\n" );
                     }
 
                     got_delim = 1;
@@ -314,19 +331,20 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 } else {
 
-                    printf( "Invalid length limits: only digits allowed\n" );
-                    return 0;
+                    free_stack_arr( stack, stack_size );
+                    p_die( "Invalid length limits: only digits allowed\n" );
                 }
             }
 
             if( has_min == 0 ) {
 
-                printf( "Invalid length limits: lower limit is required\n" );
-                return 0;
+                free_stack_arr( stack, stack_size );
+                p_die( "Invalid length limits: lower limit is required\n" );
             }
 
             if( ( has_max == 0 ) && ( got_delim == 0 ) ) {
 
+                free( max );
                 max = copy_str( min );
                 has_max = 1;
             }
@@ -341,6 +359,9 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             token -> type = stack[ stack_size - 1 ];
 
             stack[ stack_size - 1 ] = (intptr_t)token;
+
+            free( min );
+            free( max );
 
         } else {
 
@@ -357,7 +378,13 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
         push_stack( &stack, stack_size, (intptr_t)token );
         ++stack_size;
+
+    } else {
+
+        free( word );
     }
+
+    free( parametrizable_type );
 
     my_stack_t * out = malloc( sizeof( *out ) );
 
@@ -405,8 +432,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
     int pos = 0;
     int length = strlen( s );
 
-    char * type = "\0";
-    char * name = "\0";
+    char * type = zero_str();
+    char * name = zero_str();
 
     brackets_state_t brackets_state = {
         .circle = 0,
@@ -440,8 +467,10 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                     } else {
 
-                        printf( "Invalid signature: %s\n", s );
-                        return 0;
+                        free_stack_arr( stack, stack_size );
+                        char * _s;
+                        sprintf( _s, "Invalid signature: %s\n", s );
+                        p_die( _s );
                     }
                 }
 
@@ -487,8 +516,10 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
             if( strlen( type ) == 0 ) {
 
-                printf( "Invalid type string in signature: %s\n", s );
-                return 0;
+                free_stack_arr( stack, stack_size );
+                char * _s;
+                sprintf( _s, "Invalid type string in signature: %s\n", s );
+                p_die( _s );
             }
 
         } else if( seq == SIG_SEQ_ITEM_NAME ) {
@@ -520,16 +551,20 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
             if( strlen( name ) == 0 ) {
 
-                printf( "Invalid parameter name in signature: %s\n", s );
-                return 0;
+                free_stack_arr( stack, stack_size );
+                char * _s;
+                sprintf( _s, "Invalid parameter name in signature: %s\n", s );
+                p_die( _s );
             }
 
         } else if( seq == SIG_SEQ_ITEM_DELIM ) {
 
             if( ( strlen( type ) == 0 ) || ( strlen( name ) == 0 ) ) {
 
-                printf( "Type or parameter name missing in signature: %s\n", s );
-                return 0;
+                free_stack_arr( stack, stack_size );
+                char * _s;
+                sprintf( _s, "Type or parameter name missing in signature: %s\n", s );
+                p_die( _s );
             }
 
             signature_item_t * token = malloc( sizeof( *token ) );
@@ -546,6 +581,11 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
             push_stack( &stack, stack_size, (intptr_t)token );
             ++stack_size;
+
+            // free( type );
+            free( name );
+            // type = zero_str();
+            name = zero_str();
         }
 
         if( ++seq > SIG_SEQ_MAX ) seq = SIG_SEQ_MIN;
@@ -553,9 +593,14 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
     if( ( brackets_state.circle != 0 ) || has_open_inner_brackets( &brackets_state ) ) {
 
-        printf( "Unexpected end of input in signature: %s\n", s );
-        return 0;
+        free_stack_arr( stack, stack_size );
+        char * _s;
+        sprintf( _s, "Unexpected end of input in signature: %s\n", s );
+        p_die( _s );
     }
+
+    // free( type );
+    free( name );
 
     my_stack_t * out = malloc( sizeof( *out ) );
 
@@ -628,118 +673,26 @@ static inline signature_param_t * tokenize_signature_parameter_str( const char *
     return token;
 }
 
-static void print_token( intptr_t token );
+AV * perl_tokenize_type_str( const char * s, HV * options ) {
 
-static void parse_stack( my_stack_t * stack ) {
+    my_stack_t * stack = tokenize_type_str( s, perl_to_options( options ) );
 
-    int size = stack -> size;
-    // printf( "size: %d\n", size );
+    AV * out = mortalize_av( tokens_to_perl( stack ) );
 
-    for( int i = 0; i < size; ++i ) {
+    if( stack != 0 ) free_my_stack( stack );
 
-        // short token_type = ((abstract_type_t*)(stack[ i + 1 ])) -> token_type;
-        // printf( "%d: %d\n", i, token_type );
-        // printf( "%d: %s\n", i, ((basic_type_t*)(stack[ i + 1 ])) -> type );
-
-        // printf( "%d:\n", i );
-        print_token( stack -> data[ i ] );
-    }
+    return out;
 }
 
-static void print_token( intptr_t token ) {
+AV * perl_tokenize_signature_str( const char * s, HV * options ) {
 
-    short token_type = ((abstract_type_t*)token) -> token_type;
+    my_stack_t * stack = tokenize_signature_str( s, perl_to_options( options ) );
 
-    // printf( "%d\n", token_type );
+    AV * out = mortalize_av( tokens_to_perl( stack ) );
 
-    if( token_type == TOKEN_TYPE_BASIC ) {
+    if( stack != 0 ) free_my_stack( stack );
 
-        printf( "{ type => '%s' },\n", ((basic_type_t*)token) -> type );
-
-    } else if( token_type == TOKEN_TYPE_MAYBE ) {
-
-        printf( "{ maybe => [\n" );
-        parse_stack( ((maybe_type_t*)token) -> stack );
-        printf( "] },\n" );
-
-    } else if( token_type == TOKEN_TYPE_PARAMETRIZABLE ) {
-
-        printf( "{\n" );
-        printf( "  class => '%s',\n", ((parametrizable_type_t*)token) -> class );
-        printf( "  param => [\n" );
-        parse_stack( ((parametrizable_type_t*)token) -> param );
-        printf( "  ],\n" );
-        printf( "  base => [\n" );
-        parse_stack( ((parametrizable_type_t*)token) -> stack );
-        printf( "  ]\n" );
-        printf( "},\n" );
-
-    } else if( token_type == TOKEN_TYPE_SIGNED ) {
-
-        printf( "{\n" );
-        printf( "  source => '%s',\n", ((signed_type_t*)token) -> source );
-        printf( "  type => " );
-        print_token( ((signed_type_t*)token) -> type );
-        printf( "  signature => [\n" );
-        parse_stack( ((signed_type_t*)token) -> signature );
-        printf( "  ]\n" );
-        printf( "},\n" );
-
-    } else if( token_type == TOKEN_TYPE_SIGNATURE_ITEM ) {
-
-        signature_param_t * param = ((signature_item_t*)token) -> param;
-
-        printf( "{\n" );
-        printf( "  type => [\n" );
-        parse_stack( ((signature_item_t*)token) -> type );
-        printf( "  ],\n" );
-        printf( "  param => {\n" );
-        printf( "    name => '%s',\n", param -> name );
-        printf( "    named => '%d',\n", param -> named );
-        printf( "    positional => '%d',\n", param -> positional );
-        printf( "    required => '%d',\n", param -> required );
-        printf( "    optional => '%d',\n", param -> optional );
-        printf( "  },\n" );
-        printf( "},\n" );
-
-    } else if ( token_type == TOKEN_TYPE_LENGTH ) {
-
-        printf( "{ length => {\n" );
-        printf( "  type => " );
-        print_token( ((length_type_t*)token) -> type );
-        printf( "  min => %s\n,", ( ( ((length_type_t*)token) -> has_min == 1 )
-            ? ((length_type_t*)token) -> min : "undef\0" ) );
-        printf( "  max => %s\n,", ( ( ((length_type_t*)token) -> has_max == 1 )
-            ? ((length_type_t*)token) -> max : "undef\0" ) );
-        printf( "} },\n" );
-    }
+    return out;
 }
-
-static AV * perl_tokenize_type_str( const char * s, HV * options ) {
-
-    return mortalize_av( tokens_to_perl( tokenize_type_str( s, perl_to_options( options ) ) ) );
-}
-
-static AV * perl_tokenize_signature_str( const char * s, HV * options ) {
-
-    return mortalize_av( tokens_to_perl( tokenize_signature_str( s, perl_to_options( options ) ) ) );
-}
-
-// int main() {
-//
-//     const char * s = "Maybe[asd{3}|qwe[zxc]|jkl[Maybe[iop|bhy( tfc :okm! )]|bnm{1,2}]( wjb{1,} tcx )]";
-//     tokenizer_options_t options = { .loose = 1 };
-//
-//     my_stack_t * stack = tokenize_type_str( s, &options );
-//
-//     if( stack != 0 ) {
-//
-//         printf( "%s: [\n", s );
-//         parse_stack( stack );
-//         printf( "]\n" );
-//     }
-//
-//     return 0;
-// }
 
 #endif /* end of include guard: _TOKENIZER_C_ */

@@ -15,7 +15,7 @@ $Salvation::TC::Parser::BACKEND = 'Salvation::TC::Parser::XS';
 
 my $opts = { loose => 1 };
 
-timethese( 10 ** 5, {
+timethese( 10 ** 6, {
     xs1 => sub { Salvation::TC::Parser -> tokenize_type_str( TestBench::STR1, $opts ) },
 } );
 

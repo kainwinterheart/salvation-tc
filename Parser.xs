@@ -1,4 +1,4 @@
-#include "tokenizer.c"
+#include "tokenizer.h"
 
 MODULE = Salvation::TC::Parser PACKAGE = Salvation::TC::Parser::XS
 
