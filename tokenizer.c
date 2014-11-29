@@ -14,19 +14,13 @@ static inline void push_stack( intptr_t ** stack, int length, intptr_t token ) {
     (*stack)[ length ] = token;
 }
 
-static inline char * append( char * s, char c ) {
+static inline void append( char ** s, char c ) {
 
-    int len = strlen( s );
-    char buf[ len + 2 ];
+    int len = strlen( *s );
+    *s = realloc( *s, len + 2 );
 
-    strcpy( buf, s );
-
-    buf[ len ] = c;
-    buf[ len + 1 ] = '\0';
-
-    free( s );
-
-    return strdup( buf );
+    (*s)[ len ] = c;
+    (*s)[ len + 1 ] = '\0';
 }
 
 static inline char * copy_str( char * s ) {
@@ -158,7 +152,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 if( cnt == 0 ) break;
 
-                substr = append( substr, subchr );
+                append( &substr, subchr );
             }
 
             if( ( strlen( substr ) == 0 ) || ( strlen( word ) == 0 ) ) {
@@ -246,7 +240,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             int cnt = 1;
             char * substr = zero_str();
 
-            substr = append( substr, chr );
+            append( &substr, chr );
 
             while( pos < length ) {
 
@@ -255,7 +249,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 if( subchr == '(' ) ++cnt;
                 if( subchr == ')' ) --cnt;
 
-                substr = append( substr, subchr );
+                append( &substr, subchr );
 
                 if( cnt == 0 ) break;
             }
@@ -320,12 +314,12 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                     if( got_delim == 0 ) {
 
-                        min = append( min, subchr );
+                        append( &min, subchr );
                         has_min = 1;
 
                     } else {
 
-                        max = append( max, subchr );
+                        append( &max, subchr );
                         has_max = 1;
                     }
 
@@ -365,7 +359,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
         } else {
 
-            word = append( word, chr );
+            append( &word, chr );
         }
     }
 
@@ -443,6 +437,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
     };
 
     short seq = SIG_SEQ_MIN;
+    short done = 0;
 
     while( pos < length ) {
 
@@ -463,6 +458,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                     if( stack_size > 0 ) {
 
+                        done = 1;
                         break;
 
                     } else {
@@ -483,7 +479,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                         char subchr = s[ pos ++ ];
 
-                        if( !( is_space( subchr ) || is_delim( subchr ) ) ) {
+                        if( !is_space( subchr ) && !is_delim( subchr ) ) {
 
                             --pos;
                             break;
@@ -501,7 +497,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                         char subchr = s[ pos ++ ];
 
-                        if( !( is_space( subchr ) || is_delim( subchr ) ) ) {
+                        if( !is_space( subchr ) && !is_delim( subchr ) ) {
 
                             --pos;
                             break;
@@ -511,8 +507,10 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
                     break;
                 }
 
-                type = append( type, chr );
+                append( &type, chr );
             }
+
+            if( done == 1 ) break;
 
             if( strlen( type ) == 0 ) {
 
@@ -536,7 +534,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                         char subchr = s[ pos ++ ];
 
-                        if( !( is_space( subchr ) || is_delim( subchr ) ) ) {
+                        if( !is_space( subchr ) && !is_delim( subchr ) ) {
 
                             --pos;
                             break;
@@ -546,7 +544,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
                     break;
                 }
 
-                name = append( name, chr );
+                append( &name, chr );
             }
 
             if( strlen( name ) == 0 ) {
@@ -575,17 +573,18 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
             if( _type == 0 ) return 0;
             token -> type = _type;
 
+            free( type );
+            type = zero_str();
+
             signature_param_t * _param = tokenize_signature_parameter_str( name, options );
             if( _param == 0 ) return 0;
             token -> param = _param;
 
+            free( name );
+            name = zero_str();
+
             push_stack( &stack, stack_size, (intptr_t)token );
             ++stack_size;
-
-            // free( type );
-            free( name );
-            // type = zero_str();
-            name = zero_str();
         }
 
         if( ++seq > SIG_SEQ_MAX ) seq = SIG_SEQ_MIN;
@@ -599,7 +598,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
         p_die( _s );
     }
 
-    // free( type );
+    free( type );
     free( name );
 
     my_stack_t * out = malloc( sizeof( *out ) );

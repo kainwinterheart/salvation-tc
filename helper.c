@@ -33,6 +33,8 @@ char * call_load_parametrizable_type_class( char * word ) {
     return out;
 }
 
+static HV * token_to_perl( intptr_t token );
+
 AV * tokens_to_perl( my_stack_t * stack ) {
 
     if( stack == 0 ) croak( "Parser error\n" );
