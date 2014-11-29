@@ -80,6 +80,8 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
         if( ( chr == '[' ) && ( strcmp( word, "Maybe\0" ) != 0 ) ) {
 
+            free( parametrizable_type );
+
             if( options -> loose != 0 ) {
 
                 parametrizable_type = copy_str( word );
@@ -129,12 +131,11 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 basic_type_t * token = malloc( sizeof( *token ) );
 
                 token -> base.token_type = TOKEN_TYPE_BASIC;
-                token -> type = copy_str( word );
+                token -> type = word;
 
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                free( word );
                 word = zero_str();
             }
 
@@ -179,7 +180,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 parametrizable_type_t * token = malloc( sizeof( *token ) );
 
                 token -> base.token_type = TOKEN_TYPE_PARAMETRIZABLE;
-                token -> class = copy_str( parametrizable_type );
+                token -> class = parametrizable_type;
 
                 my_stack_t * _param = tokenize_type_str( substr, options );;
                 if( _param == 0 ) return 0;
@@ -192,7 +193,6 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                free( parametrizable_type );
                 parametrizable_type = zero_str();
             }
 
@@ -228,12 +228,11 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 basic_type_t * token = malloc( sizeof( *token ) );
 
                 token -> base.token_type = TOKEN_TYPE_BASIC;
-                token -> type = copy_str( word );
+                token -> type = word;
 
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                free( word );
                 word = zero_str();
             }
 
@@ -263,10 +262,9 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             token -> signature = signature;
 
             token -> type = stack[ stack_size - 1 ];
-            token -> source = copy_str( substr );
+            token -> source = substr;
 
             stack[ stack_size - 1 ] = (intptr_t)token;
-            free( substr );
 
         } else if( chr == '{' ) {
 
@@ -275,12 +273,11 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 basic_type_t * token = malloc( sizeof( *token ) );
 
                 token -> base.token_type = TOKEN_TYPE_BASIC;
-                token -> type = copy_str( word );
+                token -> type = word;
 
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                free( word );
                 word = zero_str();
             }
 
@@ -348,14 +345,11 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             token -> base.token_type = TOKEN_TYPE_LENGTH;
             token -> has_min = has_min;
             token -> has_max = has_max;
-            if( has_min == 1 ) token -> min = copy_str( min );
-            if( has_max == 1 ) token -> max = copy_str( max );
+            if( has_min == 1 ) token -> min = min; else free( min );
+            if( has_max == 1 ) token -> max = max; else free( max );
             token -> type = stack[ stack_size - 1 ];
 
             stack[ stack_size - 1 ] = (intptr_t)token;
-
-            free( min );
-            free( max );
 
         } else {
 
@@ -615,24 +609,19 @@ static inline signature_param_t * tokenize_signature_parameter_str( const char *
     signature_param_t * token = malloc( sizeof( *token ) );
 
     char first_char = s[ 0 ];
+    int len = strlen( s );
 
     if( first_char == ':' ) {
 
         token -> named = 1;
         token -> positional = 0;
 
-        int len = strlen( s ) - 1;
-        char * ns = malloc( len + 1 );
+        --len;
 
-        for( int i = 0; i < len; ++i ) {
+        for( int i = 0; i < len; ++i ) s[ i ] = s[ i + 1 ];
 
-            ns[ i ] = s[ i + 1 ];
-        }
-
-        ns[ len ] = '\0';
-
-        free( s );
-        s = ns;
+        s[ len ] = '\0';
+        s = realloc( s, len + 1 );
 
     } else {
 
@@ -640,21 +629,23 @@ static inline signature_param_t * tokenize_signature_parameter_str( const char *
         token -> positional = 1;
     }
 
-    char last_char = s[ strlen( s ) - 1 ];
+    char last_char = s[ len - 1 ];
 
     if( last_char == '!' ) {
 
         token -> required = 1;
         token -> optional = 0;
 
-        s[ strlen( s ) - 1 ] = '\0';
+        s[ len - 1 ] = '\0';
+        s = realloc( s, len );
 
     } else if( last_char == '?' ) {
 
         token -> required = 0;
         token -> optional = 1;
 
-        s[ strlen( s ) - 1 ] = '\0';
+        s[ len - 1 ] = '\0';
+        s = realloc( s, len );
 
     } else if( token -> positional == 1 ) {
 
