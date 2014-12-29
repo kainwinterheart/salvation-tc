@@ -7,7 +7,7 @@
 
 #include "defs.h"
 
-char * call_load_parametrizable_type_class( char * word );
+char * call_load_parameterizable_type_class( char * word );
 AV * tokens_to_perl( my_stack_t * stack );
 tokenizer_options_t * perl_to_options( HV * options );
 AV * mortalize_av( AV * v );

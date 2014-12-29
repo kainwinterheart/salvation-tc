@@ -8,8 +8,8 @@ BEGIN {
 
     require Salvation::TC::Parser;
 
-    *Salvation::TC::Parser::PP::load_parametrizable_type_class =
-        *Salvation::TC::Parser::load_parametrizable_type_class;
+    *Salvation::TC::Parser::PP::load_parameterizable_type_class =
+        *Salvation::TC::Parser::load_parameterizable_type_class;
 };
 
 our $VERSION = 0.01;
@@ -44,7 +44,7 @@ sub tokenize_type_str_impl {
     my @chars = split( //, $str );
     my @stack = ();
     my $word  = '';
-    my $parametrizable_type = '';
+    my $parameterizable_type = '';
 
     while( defined( my $char = shift( @chars ) ) ) {
 
@@ -54,13 +54,13 @@ sub tokenize_type_str_impl {
 
             if( $options -> { 'loose' } ) {
 
-                $parametrizable_type = $word;
+                $parameterizable_type = $word;
 
             } else {
 
-                $parametrizable_type = load_parametrizable_type_class( $word );
+                $parameterizable_type = load_parameterizable_type_class( $word );
 
-                die( "Can't parametrize type ${word}" ) if( $parametrizable_type eq '' );
+                die( "Can't parameterize type ${word}" ) if( $parameterizable_type eq '' );
             }
         }
 
@@ -100,21 +100,21 @@ sub tokenize_type_str_impl {
                 $substr .= $subchar;
             }
 
-            die( 'Invalid type parametrization' ) if( ( $substr eq '' ) || ( $word eq '' ) );
+            die( 'Invalid type parameterization' ) if( ( $substr eq '' ) || ( $word eq '' ) );
 
-            if( $parametrizable_type eq '' ) {
+            if( $parameterizable_type eq '' ) {
 
                 push( @stack, { maybe => tokenize_type_str_impl( $substr, $options ) } );
 
             } else {
 
                 push( @stack, {
-                    class => $parametrizable_type,
+                    class => $parameterizable_type,
                     param => tokenize_type_str_impl( $substr, $options ),
                     base  => tokenize_type_str_impl( $word, $options ),
                 } );
 
-                $parametrizable_type = '';
+                $parameterizable_type = '';
             }
 
             $word = '';

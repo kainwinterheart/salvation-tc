@@ -7,6 +7,13 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define E_STR_INVALID_SIGNATURE "Invalid signature: "
+#define E_STR_CANT_PARAMETERIZE_TYPE "Can't parameterize type "
+#define E_STR_INVALID_TYPE_STRING_IN_SIGNATURE "Invalid type string in signature: "
+#define E_STR_INVALID_PARAMETER_NAME_IN_SIGNATURE "Invalid parameter name in signature: "
+#define E_STR_TYPE_OR_PARAMETER_NAME_MISSING_IN_SIGNATURE "Type or parameter name missing in signature: "
+#define E_STR_UNEXPECTED_END_OF_INPUT_IN_SIGNATURE "Unexpected end of input in signature: "
+
 static inline void push_stack( intptr_t ** stack, int length, intptr_t token ) {
 
     if( length > 0 ) *stack = realloc( *stack, ( length + 1 ) * sizeof( intptr_t ) );
@@ -67,7 +74,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
     intptr_t * stack = malloc( sizeof( *stack ) );
     char * word = zero_str();
-    char * parametrizable_type = zero_str();
+    char * parameterizable_type = zero_str();
     int stack_size = 0;
     int pos = 0;
     int length = strlen( s );
@@ -80,21 +87,21 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
         if( ( chr == '[' ) && ( strcmp( word, "Maybe\0" ) != 0 ) ) {
 
-            free( parametrizable_type );
+            free( parameterizable_type );
 
             if( options -> loose != 0 ) {
 
-                parametrizable_type = copy_str( word );
+                parameterizable_type = copy_str( word );
 
             } else {
 
-                parametrizable_type = call_load_parametrizable_type_class( word );
+                parameterizable_type = call_load_parameterizable_type_class( word );
 
-                if( strlen( parametrizable_type ) == 0 ) {
+                if( strlen( parameterizable_type ) == 0 ) {
 
                     free_stack_arr( stack, stack_size );
-                    char * _s;
-                    sprintf( _s, "Can't parametrize type %s\n", word );
+                    char * _s = malloc( strlen( E_STR_CANT_PARAMETERIZE_TYPE ) + strlen( word ) + 1 );
+                    sprintf( _s, "%s%s", E_STR_CANT_PARAMETERIZE_TYPE, word );
                     p_die( _s );
                 }
             }
@@ -159,10 +166,10 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
             if( ( strlen( substr ) == 0 ) || ( strlen( word ) == 0 ) ) {
 
                 free_stack_arr( stack, stack_size );
-                p_die( "Invalid type parametrization: no type name or no parameter name\n" );
+                p_die( "Invalid type parameterization: no type name or no parameter name\n" );
             }
 
-            if( strlen( parametrizable_type ) == 0 ) {
+            if( strlen( parameterizable_type ) == 0 ) {
 
                 maybe_type_t * token = malloc( sizeof( *token ) );
 
@@ -177,10 +184,10 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
             } else {
 
-                parametrizable_type_t * token = malloc( sizeof( *token ) );
+                parameterizable_type_t * token = malloc( sizeof( *token ) );
 
                 token -> base.token_type = TOKEN_TYPE_PARAMETRIZABLE;
-                token -> class = parametrizable_type;
+                token -> class = parameterizable_type;
 
                 my_stack_t * _param = tokenize_type_str( substr, options );;
                 if( _param == 0 ) return 0;
@@ -193,7 +200,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 push_stack( &stack, stack_size, (intptr_t)token );
                 ++stack_size;
 
-                parametrizable_type = zero_str();
+                parameterizable_type = zero_str();
             }
 
             free( word );
@@ -372,7 +379,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
         free( word );
     }
 
-    free( parametrizable_type );
+    free( parameterizable_type );
 
     my_stack_t * out = malloc( sizeof( *out ) );
 
@@ -458,8 +465,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
                     } else {
 
                         free_stack_arr( stack, stack_size );
-                        char * _s;
-                        sprintf( _s, "Invalid signature: %s\n", s );
+                        char * _s = malloc( strlen( E_STR_INVALID_SIGNATURE ) + strlen( s ) + 1 );
+                        sprintf( _s, "%s%s", E_STR_INVALID_SIGNATURE, s );
                         p_die( _s );
                     }
                 }
@@ -509,8 +516,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
             if( strlen( type ) == 0 ) {
 
                 free_stack_arr( stack, stack_size );
-                char * _s;
-                sprintf( _s, "Invalid type string in signature: %s\n", s );
+                char * _s = malloc( strlen( E_STR_INVALID_TYPE_STRING_IN_SIGNATURE ) + strlen( s ) + 1 );
+                sprintf( _s, "%s%s", E_STR_INVALID_TYPE_STRING_IN_SIGNATURE, s );
                 p_die( _s );
             }
 
@@ -544,8 +551,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
             if( strlen( name ) == 0 ) {
 
                 free_stack_arr( stack, stack_size );
-                char * _s;
-                sprintf( _s, "Invalid parameter name in signature: %s\n", s );
+                char * _s = malloc( strlen( E_STR_INVALID_PARAMETER_NAME_IN_SIGNATURE ) + strlen( s ) + 1 );
+                sprintf( _s, "%s%s", E_STR_INVALID_PARAMETER_NAME_IN_SIGNATURE, s );
                 p_die( _s );
             }
 
@@ -554,8 +561,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
             if( ( strlen( type ) == 0 ) || ( strlen( name ) == 0 ) ) {
 
                 free_stack_arr( stack, stack_size );
-                char * _s;
-                sprintf( _s, "Type or parameter name missing in signature: %s\n", s );
+                char * _s = malloc( strlen( E_STR_TYPE_OR_PARAMETER_NAME_MISSING_IN_SIGNATURE ) + strlen( s ) + 1 );
+                sprintf( _s, "%s%s", E_STR_TYPE_OR_PARAMETER_NAME_MISSING_IN_SIGNATURE, s );
                 p_die( _s );
             }
 
@@ -587,8 +594,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
     if( ( brackets_state.circle != 0 ) || has_open_inner_brackets( &brackets_state ) ) {
 
         free_stack_arr( stack, stack_size );
-        char * _s;
-        sprintf( _s, "Unexpected end of input in signature: %s\n", s );
+        char * _s = malloc( strlen( E_STR_UNEXPECTED_END_OF_INPUT_IN_SIGNATURE ) + strlen( s ) + 1 );
+        sprintf( _s, "%s%s", E_STR_UNEXPECTED_END_OF_INPUT_IN_SIGNATURE, s );
         p_die( _s );
     }
 

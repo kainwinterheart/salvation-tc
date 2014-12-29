@@ -83,34 +83,34 @@ our $BACKEND;
 {
     my $re = qr/^Salvation::TC::Type::(.+?)$/;
 
-    sub load_parametrizable_type_class {
+    sub load_parameterizable_type_class {
 
         my ( $word ) = @_;
 
-        my $class = "Salvation::TC::Meta::Type::Parametrized::${word}";
-        my $parametrizable_type = '';
+        my $class = "Salvation::TC::Meta::Type::Parameterized::${word}";
+        my $parameterizable_type = '';
 
         if(
             Class::Inspector -> loaded( $class )
             || eval{ Module::Load::load( $class ); 1 }
         ) {
 
-            $parametrizable_type = $class;
+            $parameterizable_type = $class;
 
         } elsif( $word =~ $re ) {
 
-            $class = "Salvation::TC::Meta::Type::Parametrized::$1";
+            $class = "Salvation::TC::Meta::Type::Parameterized::$1";
 
             if(
                 Class::Inspector -> loaded( $class )
                 || eval{ Module::Load::load( $class ); 1 }
             ) {
 
-                $parametrizable_type = $class;
+                $parameterizable_type = $class;
             }
         }
 
-        return $parametrizable_type;
+        return $parameterizable_type;
     }
 }
 

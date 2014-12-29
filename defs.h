@@ -55,7 +55,7 @@ typedef struct {
     my_stack_t * param;
     my_stack_t * stack;
 
-} parametrizable_type_t;
+} parameterizable_type_t;
 
 typedef struct {
 

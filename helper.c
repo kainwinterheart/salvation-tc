@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-char * call_load_parametrizable_type_class( char * word ) {
+char * call_load_parameterizable_type_class( char * word ) {
 
     dSP;
     ENTER;
@@ -18,13 +18,13 @@ char * call_load_parametrizable_type_class( char * word ) {
 
     PUTBACK;
 
-    int count = call_pv( "Salvation::TC::Parser::XS::load_parametrizable_type_class", G_SCALAR );
+    int count = call_pv( "Salvation::TC::Parser::XS::load_parameterizable_type_class", G_SCALAR );
 
     SPAGAIN;
 
-    if ( count != 1 ) croak( "Can't call load_parametrizable_type_class()\n" );
+    if ( count != 1 ) croak( "Can't call load_parameterizable_type_class()\n" );
 
-    char * out = POPp;
+    char * out = strdup( POPp );
 
     PUTBACK;
     FREETMPS;
@@ -84,12 +84,12 @@ static HV * token_to_perl( intptr_t token ) {
 
     } else if( token_type == TOKEN_TYPE_PARAMETRIZABLE ) {
 
-        hash_set_str( perl_token, "class\0", ((parametrizable_type_t*)token) -> class );
+        hash_set_str( perl_token, "class\0", ((parameterizable_type_t*)token) -> class );
 
-        AV * param = tokens_to_perl( ((parametrizable_type_t*)token) -> param );
+        AV * param = tokens_to_perl( ((parameterizable_type_t*)token) -> param );
         hash_set_sv( perl_token, "param\0", newRV_noinc( (SV*)param ) );
 
-        AV * base = tokens_to_perl( ((parametrizable_type_t*)token) -> stack );
+        AV * base = tokens_to_perl( ((parameterizable_type_t*)token) -> stack );
         hash_set_sv( perl_token, "base\0", newRV_noinc( (SV*)base ) );
 
     } else if( token_type == TOKEN_TYPE_SIGNED ) {
@@ -214,10 +214,10 @@ static void free_token( intptr_t token ) {
 
     } else if( token_type == TOKEN_TYPE_PARAMETRIZABLE ) {
 
-        free( ((parametrizable_type_t*)token) -> class );
-        free_my_stack( ((parametrizable_type_t*)token) -> param );
-        free_my_stack( ((parametrizable_type_t*)token) -> stack );
-        free((parametrizable_type_t*)token);
+        free( ((parameterizable_type_t*)token) -> class );
+        free_my_stack( ((parameterizable_type_t*)token) -> param );
+        free_my_stack( ((parameterizable_type_t*)token) -> stack );
+        free((parameterizable_type_t*)token);
 
     } else if( token_type == TOKEN_TYPE_SIGNED ) {
 
