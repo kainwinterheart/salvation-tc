@@ -94,13 +94,17 @@ static HV * token_to_perl( intptr_t token ) {
 
     } else if( token_type == TOKEN_TYPE_SIGNED ) {
 
-        hash_set_str( perl_token, "source\0", ((signed_type_t*)token) -> source );
+        HV * perl_param = newHV();
+
+        hash_set_str( perl_param, "source\0", ((signed_type_t*)token) -> source );
 
         HV * type = token_to_perl( ((signed_type_t*)token) -> type );
-        hash_set_sv( perl_token, "type\0", newRV_noinc( (SV*)type ) );
+        hash_set_sv( perl_param, "type\0", newRV_noinc( (SV*)type ) );
 
         AV * signature = tokens_to_perl( ((signed_type_t*)token) -> signature );
-        hash_set_sv( perl_token, "signature\0", newRV_noinc( (SV*)signature ) );
+        hash_set_sv( perl_param, "signature\0", newRV_noinc( (SV*)signature ) );
+
+        hash_set_sv( perl_token, "signed\0", newRV_noinc( (SV*)perl_param ) );
 
     } else if( token_type == TOKEN_TYPE_SIGNATURE_ITEM ) {
 
@@ -132,7 +136,7 @@ static HV * token_to_perl( intptr_t token ) {
 
         } else {
 
-            hash_set_sv( perl_param, "min\0", &PL_sv_undef );
+            hash_set_sv( perl_param, "min\0", newSVsv( &PL_sv_undef ) );
         }
 
         if( ((length_type_t*)token) -> has_max == 1 ) {
@@ -141,7 +145,7 @@ static HV * token_to_perl( intptr_t token ) {
 
         } else {
 
-            hash_set_sv( perl_param, "max\0", &PL_sv_undef );
+            hash_set_sv( perl_param, "max\0", newSVsv( &PL_sv_undef ) );
         }
 
         hash_set_sv( perl_token, "length\0", newRV_noinc( (SV*)perl_param ) );

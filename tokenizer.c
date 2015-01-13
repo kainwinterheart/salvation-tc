@@ -440,7 +440,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
     short seq = SIG_SEQ_MIN;
     short done = 0;
 
-    while( pos < length ) {
+    while( pos <= length ) {
 
         if( seq == SIG_SEQ_ITEM_TYPE ) {
 
@@ -529,13 +529,13 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
                 update_brackets_state( &brackets_state, chr );
 
-                if( is_space( chr ) || is_delim( chr ) ) {
+                if( is_space( chr ) || is_delim( chr ) || ( chr == ')' ) ) {
 
                     while( pos < length ) {
 
                         char subchr = s[ pos ++ ];
 
-                        if( !is_space( subchr ) && !is_delim( subchr ) ) {
+                        if( !is_space( subchr ) && !is_delim( subchr ) && ( chr != ')' ) ) {
 
                             --pos;
                             break;
@@ -586,6 +586,8 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
             push_stack( &stack, stack_size, (intptr_t)token );
             ++stack_size;
+
+            if( pos >= length ) break;
         }
 
         if( ++seq > SIG_SEQ_MAX ) seq = SIG_SEQ_MIN;
