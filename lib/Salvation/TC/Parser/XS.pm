@@ -15,7 +15,7 @@ our $VERSION = 0.01;
 
 require XSLoader;
 
-XSLoader::load( 'Salvation::TC::Parser', $VERSION );
+XSLoader::load( 'Salvation::TC', $VERSION );
 
 1;
 

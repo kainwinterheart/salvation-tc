@@ -4,9 +4,9 @@ use Devel::PPPort;
 Devel::PPPort::WriteFile();
 
 WriteMakefile (
-    NAME => 'Salvation::TC::Parser',
+    NAME => 'Salvation::TC',
     VERSION => '0.01',
-    OBJECT => 'helper.o tokenizer.o Parser.o',
+    OBJECT => 'helper.o tokenizer.o TC.o',
 );
 
 exit 0;

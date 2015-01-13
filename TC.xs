@@ -23,3 +23,7 @@ tokenize_signature_str_impl( str, options )
 
     OUTPUT:
         RETVAL
+
+MODULE = Salvation::TC PACKAGE = Salvation::TC
+
+PROTOTYPES: DISABLED
