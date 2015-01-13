@@ -22,6 +22,27 @@ timethese( 10 ** 6, {
     Num => sub { Salvation::TC -> assert( 123.456, 'Num' ) },
     Object => sub { Salvation::TC -> assert( $o, 'Object' ) },
     qwe => sub { Salvation::TC -> assert( $o, 'qwe' ) },
+    array_of_custom_hashes => sub { Salvation::TC -> assert( [
+        {
+            table => 'books',
+            class => 'Classes::Book',
+            str => 'some str',
+            rest => [ 'one', 'two', 'three' ],
+        },
+        {
+            table => 'shelves',
+            class => 'Classes::Shelf',
+            str => 'some other str',
+            stuff => 1,
+        }
+    ], 'ArrayRef[HashRef(
+        Str :table!,
+        Str :class!,
+        Str :str!,
+        ArrayRef[Str] :rest,
+        Bool :stuff
+    )]' ) },
+
 } );
 
 exit 0;
