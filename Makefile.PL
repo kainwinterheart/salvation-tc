@@ -8,6 +8,29 @@ WriteMakefile (
     VERSION => '0.01',
     OBJECT => 'helper.o tokenizer.o TC.o',
     CCFLAGS => '-std=c99',
+    ABSTRACT => 'Yet another type constraint system',
+    AUTHOR => [ 'Gennadiy Filatov <gfilatov@cpan.org>' ],
+    LICENSE => 'mit',
+    PREREQ_PM => {
+        Error => 0,
+        boolean => 0,
+        'Class::Inspector' => 0,
+        'Devel::PartialDump' => 0,
+        'List::MoreUtils' => 0,
+        'Module::Load' => 0,
+        'Scalar::Util' => 0,
+        'Time::Piece' => 0,
+    },
+    META_MERGE => {
+        resources => {
+            repository => {
+                type => 'git',
+                url => 'https://github.com/kainwinterheart/salvation-tc.git',
+                web => 'https://github.com/kainwinterheart/salvation-tc',
+                bugtracker => 'https://github.com/kainwinterheart/salvation-tc/issues',
+            },
+        },
+    },
 );
 
 exit 0;
