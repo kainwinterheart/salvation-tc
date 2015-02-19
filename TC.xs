@@ -5,21 +5,23 @@ MODULE = Salvation::TC::Parser PACKAGE = Salvation::TC::Parser::XS
 PROTOTYPES: DISABLED
 
 AV*
-tokenize_type_str_impl( str, options )
+tokenize_type_str_impl( class, str, options )
+        char * class
         char * str
         HV * options
     CODE:
-        RETVAL = perl_tokenize_type_str( str, options );
+        RETVAL = perl_tokenize_type_str( class, str, options );
 
     OUTPUT:
         RETVAL
 
 AV*
-tokenize_signature_str_impl( str, options )
+tokenize_signature_str_impl( class, str, options )
+        char * class
         char * str
         HV * options
     CODE:
-        RETVAL = perl_tokenize_signature_str( str, options );
+        RETVAL = perl_tokenize_signature_str( class, str, options );
 
     OUTPUT:
         RETVAL

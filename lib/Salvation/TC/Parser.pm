@@ -14,7 +14,7 @@ our $BACKEND;
 
     sub detect {
 
-        load_backend();
+        $_[ 0 ] -> load_backend();
         return $BACKEND if defined $BACKEND;
 
         if( eval { require Salvation::TC::Parser::XS; 1 } ) {
@@ -27,7 +27,7 @@ our $BACKEND;
             $BACKEND = 'Salvation::TC::Parser::PP';
         }
 
-        load_backend();
+        $_[ 0 ] -> load_backend();
         return $BACKEND;
     }
 
@@ -51,10 +51,9 @@ our $BACKEND;
 
     sub tokenize_type_str {
 
-        shift;
         goto $code if defined $code;
 
-        detect();
+        $_[ 0 ] -> detect();
         my $name = "${BACKEND}::tokenize_type_str_impl";
 
         no strict 'refs';
@@ -68,10 +67,9 @@ our $BACKEND;
 
     sub tokenize_signature_str {
 
-        shift;
         goto $code if defined $code;
 
-        detect();
+        $_[ 0 ] -> detect();
         my $name = "${BACKEND}::tokenize_signature_str_impl";
 
         no strict 'refs';
@@ -80,15 +78,40 @@ our $BACKEND;
     }
 }
 
+sub parameterizable_type_class_ns {
+
+    return 'Salvation::TC::Meta::Type::Parameterized';
+}
+
 {
     my $re = qr/^Salvation::TC::Type::(.+?)$/;
 
-    sub load_parameterizable_type_class {
+    sub look_for_type_short_name {
 
-        my ( $word ) = @_;
+        my ( $self, $full_name ) = @_;
 
-        my $class = "Salvation::TC::Meta::Type::Parameterized::${word}";
-        my $parameterizable_type = '';
+        return ( $full_name =~ $re )[ 0 ];
+    }
+}
+
+sub load_parameterizable_type_class {
+
+    my ( $self, $word ) = @_;
+
+    my $ns = $self -> parameterizable_type_class_ns();
+    my $class = "${ns}::${word}";
+    my $parameterizable_type = '';
+
+    if(
+        Class::Inspector -> loaded( $class )
+        || eval{ Module::Load::load( $class ); 1 }
+    ) {
+
+        $parameterizable_type = $class;
+
+    } elsif( defined( $word = $self -> look_for_type_short_name( $word ) ) ) {
+
+        $class = "${ns}::${word}";
 
         if(
             Class::Inspector -> loaded( $class )
@@ -96,22 +119,10 @@ our $BACKEND;
         ) {
 
             $parameterizable_type = $class;
-
-        } elsif( $word =~ $re ) {
-
-            $class = "Salvation::TC::Meta::Type::Parameterized::$1";
-
-            if(
-                Class::Inspector -> loaded( $class )
-                || eval{ Module::Load::load( $class ); 1 }
-            ) {
-
-                $parameterizable_type = $class;
-            }
         }
-
-        return $parameterizable_type;
     }
+
+    return $parameterizable_type;
 }
 
 1;

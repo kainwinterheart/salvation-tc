@@ -365,8 +365,17 @@ CodeRef, функция-валидатор.
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ $name } //= Salvation::TC::Meta::Type -> new( @rest, name => $name );
+        return $TYPE{ $name } //= $self -> simple_type_class_name() -> new( @rest, name => $name );
     }
+
+=head2 simple_type_class_name()
+
+=cut
+
+sub simple_type_class_name {
+
+    return 'Salvation::TC::Meta::Type';
+}
 
 =head2 setup_maybe_type( Str $name, @rest )
 
@@ -376,8 +385,17 @@ CodeRef, функция-валидатор.
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ $name } //= Salvation::TC::Meta::Type::Maybe -> new( @rest, name => $name );
+        return $TYPE{ $name } //= $self -> maybe_type_class_name() -> new( @rest, name => $name );
     }
+
+=head2 maybe_type_class_name()
+
+=cut
+
+sub maybe_type_class_name {
+
+    return 'Salvation::TC::Meta::Type::Maybe';
+}
 
 =head2 setup_union_type( Str $name, @rest )
 
@@ -389,6 +407,15 @@ CodeRef, функция-валидатор.
 
         return $TYPE{ $name } //= Salvation::TC::Meta::Type::Union -> new( @rest, name => $name );
     }
+
+=head2 union_type_class_name()
+
+=cut
+
+sub union_type_class_name {
+
+    return 'Salvation::TC::Meta::Type::Union';
+}
 
 =head2 setup_parameterized_type( Str $name, Str $class, @rest )
 

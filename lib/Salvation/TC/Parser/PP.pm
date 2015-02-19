@@ -4,14 +4,6 @@ use strict;
 use warnings;
 use boolean;
 
-BEGIN {
-
-    require Salvation::TC::Parser;
-
-    *Salvation::TC::Parser::PP::load_parameterizable_type_class =
-        *Salvation::TC::Parser::load_parameterizable_type_class;
-};
-
 our $VERSION = 0.01;
 
 =head2 tokenize_type_str_impl( Str str, Maybe[HashRef( Bool :loose )] options? )
@@ -33,7 +25,7 @@ our $VERSION = 0.01;
 
 sub tokenize_type_str_impl {
 
-    my ( $str, $options ) = @_;
+    my ( $class, $str, $options ) = @_;
 
     $options //= {};
 
@@ -58,7 +50,7 @@ sub tokenize_type_str_impl {
 
             } else {
 
-                $parameterizable_type = load_parameterizable_type_class( $word );
+                $parameterizable_type = $class -> load_parameterizable_type_class( $word );
 
                 die( "Can't parameterize type ${word}" ) if( $parameterizable_type eq '' );
             }
@@ -104,14 +96,14 @@ sub tokenize_type_str_impl {
 
             if( $parameterizable_type eq '' ) {
 
-                push( @stack, { maybe => tokenize_type_str_impl( $substr, $options ) } );
+                push( @stack, { maybe => tokenize_type_str_impl( $class, $substr, $options ) } );
 
             } else {
 
                 push( @stack, {
                     class => $parameterizable_type,
-                    param => tokenize_type_str_impl( $substr, $options ),
-                    base  => tokenize_type_str_impl( $word, $options ),
+                    param => tokenize_type_str_impl( $class, $substr, $options ),
+                    base  => tokenize_type_str_impl( $class, $word, $options ),
                 } );
 
                 $parameterizable_type = '';
@@ -152,7 +144,7 @@ sub tokenize_type_str_impl {
             push( @stack, {
                 signed => {
                     type => pop( @stack ),
-                    signature => tokenize_signature_str_impl( $substr, $options ),
+                    signature => tokenize_signature_str_impl( $class, $substr, $options ),
                     source => $substr,
                 }
             } );
@@ -225,7 +217,7 @@ sub tokenize_type_str_impl {
 
 sub tokenize_signature_str_impl {
 
-    my ( $str, $options ) = @_;
+    my ( $class, $str, $options ) = @_;
 
     $options //= {};
 
@@ -323,7 +315,7 @@ sub tokenize_signature_str_impl {
 
             die( 'Invalid signature' ) if( ( $type eq '' ) || ( $name eq '' ) );
 
-            $type = tokenize_type_str_impl( $type, $options );
+            $type = tokenize_type_str_impl( $class, $type, $options );
             $name = tokenize_signature_parameter_str( $name );
 
             push( @stack, {

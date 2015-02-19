@@ -59,7 +59,7 @@ static inline short is_digit( char chr ) {
     ) ? 1 : 0 );
 }
 
-static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t * options );
+static my_stack_t * tokenize_signature_str( char * class, const char * s, tokenizer_options_t * options );
 
 static inline char * zero_str() {
 
@@ -70,7 +70,7 @@ static inline char * zero_str() {
     return word;
 }
 
-static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * options ) {
+static my_stack_t * tokenize_type_str( char * class, const char * s, tokenizer_options_t * options ) {
 
     intptr_t * stack = malloc( sizeof( *stack ) );
     char * word = zero_str();
@@ -95,7 +95,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
             } else {
 
-                parameterizable_type = call_load_parameterizable_type_class( word );
+                parameterizable_type = call_load_parameterizable_type_class( class, word );
 
                 if( strlen( parameterizable_type ) == 0 ) {
 
@@ -175,7 +175,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
                 token -> base.token_type = TOKEN_TYPE_MAYBE;
 
-                my_stack_t * _stack = tokenize_type_str( substr, options );
+                my_stack_t * _stack = tokenize_type_str( class, substr, options );
                 if( _stack == 0 ) return 0;
                 token -> stack = _stack;
 
@@ -189,11 +189,11 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
                 token -> base.token_type = TOKEN_TYPE_PARAMETRIZABLE;
                 token -> class = parameterizable_type;
 
-                my_stack_t * _param = tokenize_type_str( substr, options );;
+                my_stack_t * _param = tokenize_type_str( class, substr, options );;
                 if( _param == 0 ) return 0;
                 token -> param = _param;
 
-                my_stack_t * _stack = tokenize_type_str( word, options );
+                my_stack_t * _stack = tokenize_type_str( class, word, options );
                 if( _stack == 0 ) return 0;
                 token -> stack = _stack;
 
@@ -264,7 +264,7 @@ static my_stack_t * tokenize_type_str( const char * s, tokenizer_options_t * opt
 
             token -> base.token_type = TOKEN_TYPE_SIGNED;
 
-            my_stack_t * signature = tokenize_signature_str( substr, options );
+            my_stack_t * signature = tokenize_signature_str( class, substr, options );
             if( signature == 0 ) return 0;
             token -> signature = signature;
 
@@ -420,7 +420,7 @@ static inline short has_open_inner_brackets( brackets_state_t * bs ) {
 
 static inline signature_param_t * tokenize_signature_parameter_str( const char * s, tokenizer_options_t * options );
 
-static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t * options ) {
+static my_stack_t * tokenize_signature_str( char * class, const char * s, tokenizer_options_t * options ) {
 
     intptr_t * stack = malloc( sizeof( *stack ) );
     int stack_size = 0;
@@ -570,7 +570,7 @@ static my_stack_t * tokenize_signature_str( const char * s, tokenizer_options_t 
 
             token -> base.token_type = TOKEN_TYPE_SIGNATURE_ITEM;
 
-            my_stack_t * _type = tokenize_type_str( type, options );
+            my_stack_t * _type = tokenize_type_str( class, type, options );
             if( _type == 0 ) return 0;
             token -> type = _type;
 
@@ -672,9 +672,9 @@ static inline signature_param_t * tokenize_signature_parameter_str( const char *
     return token;
 }
 
-AV * perl_tokenize_type_str( const char * s, HV * options ) {
+AV * perl_tokenize_type_str( char * class, const char * s, HV * options ) {
 
-    my_stack_t * stack = tokenize_type_str( s, perl_to_options( options ) );
+    my_stack_t * stack = tokenize_type_str( class, s, perl_to_options( options ) );
 
     AV * out = mortalize_av( tokens_to_perl( stack ) );
 
@@ -683,9 +683,9 @@ AV * perl_tokenize_type_str( const char * s, HV * options ) {
     return out;
 }
 
-AV * perl_tokenize_signature_str( const char * s, HV * options ) {
+AV * perl_tokenize_signature_str( char * class, const char * s, HV * options ) {
 
-    my_stack_t * stack = tokenize_signature_str( s, perl_to_options( options ) );
+    my_stack_t * stack = tokenize_signature_str( class, s, perl_to_options( options ) );
 
     AV * out = mortalize_av( tokens_to_perl( stack ) );
 

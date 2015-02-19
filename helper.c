@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-char * call_load_parameterizable_type_class( char * word ) {
+char * call_load_parameterizable_type_class( char * class, char * word ) {
 
     dSP;
     ENTER;
@@ -14,11 +14,20 @@ char * call_load_parameterizable_type_class( char * word ) {
 
     PUSHMARK( SP );
 
+    XPUSHs( sv_2mortal( newSVpvn( class, strlen( class ) ) ) );
     XPUSHs( sv_2mortal( newSVpvn( word, strlen( word ) ) ) );
 
     PUTBACK;
 
-    int count = call_pv( "Salvation::TC::Parser::XS::load_parameterizable_type_class", G_SCALAR );
+    const char * suffix = "::load_parameterizable_type_class\0";
+    char * path = malloc( strlen( class ) + strlen( suffix ) + 1 );
+
+    strcpy( path, class );
+    strcat( path, suffix );
+
+    int count = call_pv( path, G_SCALAR );
+
+    free( path );
 
     SPAGAIN;
 
