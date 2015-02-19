@@ -28,7 +28,6 @@ package Salvation::TC::Type;
 use strict;
 use Error qw( :try );
 use Salvation::TC::Exception::WrongType;
-use Salvation::TC::Exception::NotSupported;
 
 =head2 Check
     Проверяет синтакcис значения согласно правилам, описанным в типе данных.
@@ -42,14 +41,6 @@ use Salvation::TC::Exception::NotSupported;
       В случае ошибки синтаксиса $value будет брошен exception с типом Salvation::TC::Exception::WrongType (возможны исключения, за деталями смотрите пакет,
       отвечающий за проверку нужного типа данных).
 =cut
-
-sub Check {
-
-    my ( $class, $value, $object ) = @_;
-
-    warn "Check() is not implemented in $class";
-    throw Salvation::TC::Exception::NotSupported( '-text' => 'Check()', '-class' => $class );
-}
 
 1;
 __END__
