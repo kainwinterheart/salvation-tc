@@ -604,6 +604,15 @@ sub materialize_type {
     }
 }
 
+=head2 simple_type_class_ns()
+
+=cut
+
+sub simple_type_class_ns {
+
+    return 'Salvation::TC::Type';
+}
+
 =head2 get_or_create_simple_type( Str $str )
 
 Возвращает базовый тип с именем C<$str>.
@@ -614,7 +623,7 @@ sub get_or_create_simple_type {
 
     my ( $self, $str ) = @_;
 
-    my $salvation_tc_type_str = sprintf( 'Salvation::TC::Type::%s', $str );
+    my $salvation_tc_type_str = sprintf( '%s::%s', $self -> simple_type_class_ns(), $str );
 
     my $type = ( $self -> get_type( $str ) // $self -> get_type( $salvation_tc_type_str ) );
 
