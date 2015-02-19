@@ -94,6 +94,7 @@ sub init_regular_cases {
         'Text',
         'Time',
         'Undef',
+        'ScalarRef',
     ) {
 
         $self -> get( $type );

@@ -35,6 +35,7 @@ my @cases = (
     [ 1, 'HashRef', 0 ],
     [ 1, 'CodeRef', 0 ],
     [ 1, 'Class1', 0 ],
+    [ 1, 'ScalarRef', 0 ],
 
     [ 1.1, 'Int', 0 ],
     [ 1.1, 'Num', 1 ],
@@ -43,6 +44,7 @@ my @cases = (
     [ 1.1, 'HashRef', 0 ],
     [ 1.1, 'CodeRef', 0 ],
     [ 1.1, 'Class1', 0 ],
+    [ 1.1, 'ScalarRef', 0 ],
 
     [ 'asd', 'Int', 0 ],
     [ 'asd', 'Num', 0 ],
@@ -51,6 +53,7 @@ my @cases = (
     [ 'asd', 'HashRef', 0 ],
     [ 'asd', 'CodeRef', 0 ],
     [ 'asd', 'Class1', 0 ],
+    [ 'asd', 'ScalarRef', 0 ],
 
     [ [], 'Int', 0 ],
     [ [], 'Num', 0 ],
@@ -59,6 +62,7 @@ my @cases = (
     [ [], 'HashRef', 0 ],
     [ [], 'CodeRef', 0 ],
     [ [], 'Class1', 0 ],
+    [ [], 'ScalarRef', 0 ],
 
     [ {}, 'Int', 0 ],
     [ {}, 'Num', 0 ],
@@ -67,6 +71,7 @@ my @cases = (
     [ {}, 'HashRef', 1 ],
     [ {}, 'CodeRef', 0 ],
     [ {}, 'Class1', 0 ],
+    [ {}, 'ScalarRef', 0 ],
 
     [ sub {}, 'Int', 0 ],
     [ sub {}, 'Num', 0 ],
@@ -75,6 +80,7 @@ my @cases = (
     [ sub {}, 'HashRef', 0 ],
     [ sub {}, 'CodeRef', 1 ],
     [ sub {}, 'Class1', 0 ],
+    [ sub {}, 'ScalarRef', 0 ],
 
     [ Class1 -> new(), 'Int', 0 ],
     [ Class1 -> new(), 'Num', 0 ],
@@ -83,6 +89,16 @@ my @cases = (
     [ Class1 -> new(), 'HashRef', 0 ],
     [ Class1 -> new(), 'CodeRef', 0 ],
     [ Class1 -> new(), 'Class1', 1 ],
+    [ Class1 -> new(), 'ScalarRef', 0 ],
+
+    [ \1, 'Int', 0 ],
+    [ \1, 'Num', 0 ],
+    [ \1, 'Str', 0 ],
+    [ \1, 'ArrayRef', 0 ],
+    [ \1, 'HashRef', 0 ],
+    [ \1, 'CodeRef', 0 ],
+    [ \1, 'Class1', 0 ],
+    [ \1, 'ScalarRef', 1 ],
 
     [ 1, 'ArrayRef[Int]|Int', 1 ],
     [ 1, 'ArrayRef[Str]|Str', 1 ],
@@ -91,11 +107,22 @@ my @cases = (
     [ [ [ { a => [ undef, 'asd' ] } ], 'qwe' ], 'ArrayRef[Str|ArrayRef[HashRef[ArrayRef[Maybe[Str]]]]]', 1 ], # WUT
     [ undef, 'Maybe[Str]', 1 ],
     [ 'asd', 'Maybe[Str]', 1 ],
+    [ \\'asd', 'ScalarRef[ScalarRef[Str]]', 1 ],
+    [ \\'asd', 'ScalarRef[ScalarRef[Int]]', 0 ],
+    [ \\\'asd', 'ScalarRef[ScalarRef[Int]]', 0 ],
+    [ \\\[ 1, 2, 3 ], 'ScalarRef[ScalarRef[ScalarRef[ArrayRef[Int]]]]', 1 ],
 
     [ 'green', 'RGB', 1 ],
     [ 'white', 'RGB', 0 ],
     [ [ 'red', 'blue' ], 'ArrayRef[RGB]', 1 ],
     [ [ 'red', 'white' ], 'ArrayRef[RGB]', 0 ],
+
+    [ [ 1, 2, 'wut' ], 'ArrayRef[Int]', 0 ],
+
+    [ {a=>{b=>{c=>[{d=>1},{e=>2},{f=>"wut"}]}}}, 'HashRef[Int]|HashRef[Str]', 0 ],
+    [ {a=>{b=>{c=>[{d=>1},{e=>2},{f=>"wut"}]}}}, 'HashRef[Int]|HashRef[Int]', 0 ],
+    [ {a=>{b=>{c=>[{d=>1},{e=>2},{f=>"wut"}]}}}, 'HashRef[HashRef[HashRef[ArrayRef[HashRef[Object]]]]]|HashRef[HashRef[HashRef[ArrayRef[HashRef[Int]]]]]', 0 ],
+    [ {a=>{b=>{c=>[{d=>1},{e=>2},{f=>3}]}}}, 'HashRef[HashRef[HashRef[Str]]]|HashRef[HashRef[HashRef[ArrayRef[HashRef[Int]]]]]', 1 ],
 );
 
 plan tests => scalar( @cases );

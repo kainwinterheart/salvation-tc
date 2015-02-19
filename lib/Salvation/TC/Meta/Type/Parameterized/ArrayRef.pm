@@ -2,7 +2,7 @@ package Salvation::TC::Meta::Type::Parameterized::ArrayRef;
 
 =head1 NAME
 
-Salvation::TC::Meta::Type::Parameterized::HashRef - Класс для типа параметризованного ArrayRef.
+Salvation::TC::Meta::Type::Parameterized::ArrayRef - Класс для типа параметризованного ArrayRef.
 
 =cut
 
@@ -32,17 +32,6 @@ sub iterate {
     }
 
     return;
-}
-
-=head2 unfold( ArrayRef $value )
-
-=cut
-
-sub unfold {
-
-    my ( $self, $value ) = @_;
-
-    return @$value;
 }
 
 =head2 signed_type_generator()

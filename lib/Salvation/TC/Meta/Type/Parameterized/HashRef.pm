@@ -12,6 +12,8 @@ use boolean;
 
 use base 'Salvation::TC::Meta::Type::Parameterized';
 
+use Error ':try';
+
 =head1 METHODS
 
 =cut
@@ -26,7 +28,17 @@ sub iterate {
 
     while( my ( $key, $item ) = each( %$value ) ) {
 
-        $code -> ( $item, $key );
+        try {
+            $code -> ( $item, $key );
+
+        } catch Salvation::TC::Exception::WrongType with {
+
+            my ( $e ) = @_;
+
+            keys( %$value ); # сбрасываем итератор
+
+            $e -> throw();
+        };
     }
 
     return;

@@ -19,7 +19,7 @@ sub create_length_validator {
 
         my $len = length( $_[ 0 ] );
 
-        unless( ( $len >= $min ) && ( defined( $max ) ? ( $len <= $max ) : 1 ) ) {
+        if( ( $len < $min ) || ( defined $max && ( $len > $max ) ) ) {
 
             Salvation::TC::Exception::WrongType -> throw(
                 'type' => sprintf( 'Text{%s,%s}', $min, ( $max // '' ) ),

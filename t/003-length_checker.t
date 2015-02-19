@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 27;
 use Salvation::TC ();
 
 cmp_ok( Salvation::TC -> is( 'asd', 'Str{3}' ), '==', 1 );
@@ -28,6 +28,12 @@ cmp_ok( Salvation::TC -> is( [ 1, 2, 3 ], 'ArrayRef[Int]{2,3}' ), '==', 1 );
 cmp_ok( Salvation::TC -> is( [ 1, 2, 3 ], 'ArrayRef[ArrayRef]{3}' ), '==', 0 );
 cmp_ok( Salvation::TC -> is( [ [ 1 ], [ 2 ], [ 3 ] ], 'ArrayRef[ArrayRef[Int]{1}]{3}' ), '==', 1 );
 cmp_ok( Salvation::TC -> is( [ [ 1 ], [ 2 ], [] ], 'ArrayRef[ArrayRef[Int]{1}]{3}' ), '==', 0 );
+
+cmp_ok( Salvation::TC -> is( { a => 1, b => 2, c => 3 }, 'HashRef{3}' ), '==', 1 );
+cmp_ok( Salvation::TC -> is( { a => 1, b => 2, c => 3 }, 'HashRef{2,}' ), '==', 1 );
+cmp_ok( Salvation::TC -> is( { a => 1, b => 2, c => 3 }, 'HashRef{4,7}' ), '==', 0 );
+cmp_ok( Salvation::TC -> is( {}, 'HashRef{1,}' ), '==', 0 );
+cmp_ok( Salvation::TC -> is( {}, 'HashRef{0}' ), '==', 1 );
 
 cmp_ok( Salvation::TC -> is(
     [ { id => 'asd', qwe => 'zxc' } ],
