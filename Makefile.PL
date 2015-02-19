@@ -6,7 +6,7 @@ Devel::PPPort::WriteFile();
 
 WriteMakefile (
     NAME => 'Salvation::TC',
-    VERSION => '0.01',
+    VERSION_FROM => 'lib/Salvation/TC.pm',
     OBJECT => 'helper.o tokenizer.o TC.o',
     CCFLAGS => $Config{ 'ccflags' } . ' -std=c99',
     ABSTRACT => 'Yet another type constraint system',

@@ -46,6 +46,8 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
+our $VERSION = 0.02;
+
 
 =head1 METHODS
 
@@ -365,7 +367,7 @@ CodeRef, функция-валидатор.
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ $name } //= $self -> simple_type_class_name() -> new( @rest, name => $name );
+        return $TYPE{ ref( $self ) || $self } -> { $name } //= $self -> simple_type_class_name() -> new( @rest, name => $name );
     }
 
 =head2 simple_type_class_name()
@@ -385,7 +387,7 @@ sub simple_type_class_name {
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ $name } //= $self -> maybe_type_class_name() -> new( @rest, name => $name );
+        return $TYPE{ ref( $self ) || $self } -> { $name } //= $self -> maybe_type_class_name() -> new( @rest, name => $name );
     }
 
 =head2 maybe_type_class_name()
@@ -405,7 +407,7 @@ sub maybe_type_class_name {
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ $name } //= Salvation::TC::Meta::Type::Union -> new( @rest, name => $name );
+        return $TYPE{ ref( $self ) || $self } -> { $name } //= Salvation::TC::Meta::Type::Union -> new( @rest, name => $name );
     }
 
 =head2 union_type_class_name()
@@ -425,7 +427,7 @@ sub union_type_class_name {
 
         my ( $self, $name, $class, @rest ) = @_;
 
-        return $TYPE{ $name } //= $class -> new( @rest, name => $name );
+        return $TYPE{ ref( $self ) || $self } -> { $name } //= $class -> new( @rest, name => $name );
     }
 
 =head2 get_type( Str $name )
@@ -450,7 +452,7 @@ sub union_type_class_name {
 
         my ( $self, $name ) = @_;
 
-        return $TYPE{ $name };
+        return $TYPE{ ref( $self ) || $self } -> { $name };
     }
 }
 
