@@ -1,5 +1,6 @@
 use ExtUtils::MakeMaker;
 use Devel::PPPort;
+use Config;
 
 Devel::PPPort::WriteFile();
 
@@ -7,7 +8,7 @@ WriteMakefile (
     NAME => 'Salvation::TC',
     VERSION => '0.01',
     OBJECT => 'helper.o tokenizer.o TC.o',
-    CCFLAGS => '-std=c99',
+    CCFLAGS => $Config{ 'ccflags' } . ' -std=c99',
     ABSTRACT => 'Yet another type constraint system',
     AUTHOR => [ 'Gennadiy Filatov <gfilatov@cpan.org>' ],
     LICENSE => 'mit',
