@@ -7,6 +7,7 @@ WriteMakefile (
     NAME => 'Salvation::TC',
     VERSION => '0.01',
     OBJECT => 'helper.o tokenizer.o TC.o',
+    CCFLAGS => '-std=c99',
 );
 
 exit 0;
