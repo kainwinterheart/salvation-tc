@@ -46,7 +46,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 
 =head1 METHODS
@@ -679,7 +679,7 @@ sub get_or_create_simple_type {
 
         my ( $self, $constraint ) = @_;
 
-        return $cache{ $constraint } //= $self -> parse_type( $constraint );
+        return $cache{ ref( $self ) || $self } -> { $constraint } //= $self -> parse_type( $constraint );
     }
 }
 
