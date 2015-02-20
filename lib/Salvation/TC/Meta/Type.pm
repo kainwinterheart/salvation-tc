@@ -98,6 +98,28 @@ sub check {
     return $self -> validator() -> ( $value );
 }
 
+=head2 signature()
+
+=cut
+
+sub signature {
+
+    my ( $self ) = @_;
+
+    return $self -> { 'signature' };
+}
+
+=head2 has_signature()
+
+=cut
+
+sub has_signature {
+
+    my ( $self ) = @_;
+
+    return exists $self -> { 'signature' };
+}
+
 =head2 coercion_map()
 
 =cut

@@ -46,7 +46,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 
 
 =head1 METHODS
@@ -560,6 +560,7 @@ sub materialize_type {
                 ) : () ),
                 validator => $type -> sign( $data -> { 'signature' } ),
                 length_type_generator => $type -> length_type_generator(),
+                signature => $data -> { 'signature' },
                 base => $type,
             );
 
@@ -581,6 +582,9 @@ sub materialize_type {
                 ) : () ),
                 validator => $type -> length_checker( @$data{ 'min', 'max' } ),
                 signed_type_generator => $type -> signed_type_generator(),
+                ( $type -> has_signature() ? (
+                    signature => $type -> signature(),
+                ) : () ),
                 base => $type,
             ) );
 

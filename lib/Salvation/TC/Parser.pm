@@ -6,7 +6,7 @@ use warnings;
 use Module::Load ();
 use Class::Inspector ();
 
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 our $BACKEND;
 
 {
