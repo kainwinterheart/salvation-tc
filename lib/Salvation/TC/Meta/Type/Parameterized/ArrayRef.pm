@@ -23,15 +23,17 @@ use base 'Salvation::TC::Meta::Type::Parameterized';
 sub iterate {
 
     my ( $self, $value, $code ) = @_;
-
     my $i = 0;
+    my @clone = ();
 
     foreach my $item ( @$value ) {
 
-        $code -> ( $item, $i++ );
+        $code -> ( $item, $i, sub { $clone[ $i ] = $_[ 0 ] } );
+
+        ++$i;
     }
 
-    return;
+    return \@clone;
 }
 
 =head2 signed_type_generator()

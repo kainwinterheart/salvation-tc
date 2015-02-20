@@ -46,7 +46,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 
 =head1 METHODS

@@ -23,10 +23,11 @@ use base 'Salvation::TC::Meta::Type::Parameterized';
 sub iterate {
 
     my ( $self, $value, $code ) = @_;
+    my $clone = undef;
 
-    $code -> ( $$value, 0 );
+    $code -> ( $$value, 0, sub { $clone = $_[ 0 ] } );
 
-    return;
+    return \$clone;
 }
 
 

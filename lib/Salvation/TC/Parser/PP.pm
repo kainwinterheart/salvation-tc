@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use boolean;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 =head2 tokenize_type_str_impl( Str str, Maybe[HashRef( Bool :loose )] options? )
 

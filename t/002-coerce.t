@@ -15,7 +15,7 @@ subtype 'CustomString',
 
 subtype 'ArrayRefOfCustomStrings',
     as 'ArrayRef[CustomString]',
-    where {};
+    where { 1 };
 
 coerce 'ArrayRefOfCustomStrings',
     from 'CustomString',

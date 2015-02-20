@@ -25,11 +25,12 @@ use Error ':try';
 sub iterate {
 
     my ( $self, $value, $code ) = @_;
+    my %clone = ();
 
     while( my ( $key, $item ) = each( %$value ) ) {
 
         try {
-            $code -> ( $item, $key );
+            $code -> ( $item, $key, sub { $clone{ $key } = $_[ 0 ] } );
 
         } catch Salvation::TC::Exception::WrongType with {
 
@@ -41,7 +42,7 @@ sub iterate {
         };
     }
 
-    return;
+    return \%clone;
 }
 
 =head2 signed_type_generator()

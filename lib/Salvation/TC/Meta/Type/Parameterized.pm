@@ -142,6 +142,8 @@ sub build_validator {
                 );
             };
         } );
+
+        return 1;
     };
 }
 
