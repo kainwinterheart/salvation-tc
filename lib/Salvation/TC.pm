@@ -46,7 +46,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 
 =head1 METHODS
@@ -407,7 +407,7 @@ sub maybe_type_class_name {
 
         my ( $self, $name, @rest ) = @_;
 
-        return $TYPE{ ref( $self ) || $self } -> { $name } //= Salvation::TC::Meta::Type::Union -> new( @rest, name => $name );
+        return $TYPE{ ref( $self ) || $self } -> { $name } //= $self -> union_type_class_name() -> new( @rest, name => $name );
     }
 
 =head2 union_type_class_name()
@@ -499,7 +499,7 @@ sub parse_type {
 
 =head2 materialize_type( ArrayRef[HashRef] $tokens )
 
-Превращает токены в классы типов.
+Превращает токены �� классы типов.
 
 =cut
 
@@ -519,7 +519,7 @@ sub materialize_type {
             my $name = sprintf( 'Maybe[%s]', $type -> name() );
 
             return ( $self -> get_type( $name ) // $self -> setup_maybe_type(
-                $name, validator => $type -> validator(),
+                $name, validator => $type -> validator(), base => $type,
             ) );
 
         } elsif( exists $tokens -> [ 0 ] -> { 'class' } ) {
@@ -529,7 +529,7 @@ sub materialize_type {
             my $name  = sprintf( '%s[%s]', $base -> name(), $inner -> name() );
 
             return ( $self -> get_type( $name ) // $self -> setup_parameterized_type(
-                $name, $tokens -> [ 0 ] -> { 'class' },
+                $name, $tokens -> [ 0 ] -> { 'class' }, base => $base,
                 validator => $base -> validator(), inner => $inner,
             ) );
 
@@ -560,6 +560,7 @@ sub materialize_type {
                 ) : () ),
                 validator => $type -> sign( $data -> { 'signature' } ),
                 length_type_generator => $type -> length_type_generator(),
+                base => $type,
             );
 
         } elsif( exists $tokens -> [ 0 ] -> { 'length' } ) {
@@ -580,6 +581,7 @@ sub materialize_type {
                 ) : () ),
                 validator => $type -> length_checker( @$data{ 'min', 'max' } ),
                 signed_type_generator => $type -> signed_type_generator(),
+                base => $type,
             ) );
 
         } else {

@@ -50,6 +50,17 @@ sub new {
         };
     }
 
+    if( exists $args{ 'base' } ) {
+
+        unless(
+            defined $args{ 'base' } && blessed $args{ 'base' }
+            && $args{ 'base' } -> isa( 'Salvation::TC::Meta::Type' )
+        ) {
+
+            die( 'Base type must be a Salvation::TC::Meta::Type' );
+        }
+    }
+
     foreach my $spec (
         [ 'signed_type_generator', 'Signed type generator' ],
         [ 'length_type_generator', 'Length type generator' ],
@@ -107,6 +118,28 @@ sub parent {
     my ( $self ) = @_;
 
     return $self -> { 'parent' };
+}
+
+=head2 base()
+
+=cut
+
+sub base {
+
+    my ( $self ) = @_;
+
+    return $self -> { 'base' };
+}
+
+=head2 has_base()
+
+=cut
+
+sub has_base {
+
+    my ( $self ) = @_;
+
+    return exists $self -> { 'base' };
 }
 
 =head2 has_parent()
