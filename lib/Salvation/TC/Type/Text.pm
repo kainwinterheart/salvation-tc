@@ -1,14 +1,16 @@
 package Salvation::TC::Type::Text;
 
 use strict;
-use base qw( Salvation::TC::Type );
-use Error qw ( :try );
-use Salvation::TC::Exception::WrongType;
+use warnings;
+
+use base 'Salvation::TC::Type';
+
+use Salvation::TC::Exception::WrongType ();
 
 
 sub Check {
     my ( $class, $value ) = @_;
-    ( ! ref( $value ) && $value ne '' ) || throw Salvation::TC::Exception::WrongType ( 'type' => 'Text', 'value' => $value );
+    ( ! ref( $value ) && $value ne '' ) || Salvation::TC::Exception::WrongType -> throw( 'type' => 'Text', 'value' => $value );
 }
 
 sub create_length_validator {

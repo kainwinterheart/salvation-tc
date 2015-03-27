@@ -5,10 +5,9 @@ use warnings;
 
 use base 'Salvation::TC::Type::Ref';
 
+use Scalar::Util 'blessed';
 use Salvation::TC::Exception::WrongType ();
 use Salvation::TC::Exception::WrongType::TC ();
-
-use Error ':try';
 
 
 sub Check {
@@ -39,22 +38,25 @@ sub create_validator_from_sig {
 
             my ( @input ) = @_;
 
-            try {
+            eval { $type -> check( $input[ 0 ] -> [ $local_i ] ) };
 
-                $type -> check( $input[ 0 ] -> [ $local_i ] );
+            if( $@ ) {
 
-            } catch Salvation::TC::Exception::WrongType with {
+                if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-                my ( $e ) = @_;
+                    Salvation::TC::Exception::WrongType::TC -> throw(
+                        type => $@ -> getType(),
+                        value => $@ -> getValue(),
+                        param_name => $local_i,
+                        ( $@ -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
+                            prev => $@ -> getPrev(),
+                        ) : () ),
+                    );
 
-                Salvation::TC::Exception::WrongType::TC -> throw(
-                    type => $e -> getType(),
-                    value => $e -> getValue(),
-                    param_name => $local_i,
-                    ( $e -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
-                        prev => $e -> getPrev(),
-                    ) : () ),
-                );
+                } else {
+
+                    die( $@ );
+                }
             };
         } );
     }

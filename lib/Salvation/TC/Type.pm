@@ -6,27 +6,19 @@ package Salvation::TC::Type;
 
 =head1 SYNOPSIS
 
-    use Error qw( :try );
     use Salvation::TC::Type;
 
-    try {
-      Salvation::TC::Type::SomeType->Check( $value );
-    }
-    catch Salvation::TC::Exception::WrongType with {
+    eval { Salvation::TC::Type::SomeType -> Check( $value ) };
 
-      my $exception = shift( @_ );
+    if( $@ ) {
 
-      warn( $exception->getMessage() );
-    }
-    otherwise {
-      ...
+        warn( $@ -> getMessage() );
     };
 
 =head1 DESCRIPTION
 =cut
 
 use strict;
-use Error qw( :try );
 use Salvation::TC::Exception::WrongType;
 
 =head2 Check

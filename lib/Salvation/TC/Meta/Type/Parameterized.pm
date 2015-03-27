@@ -12,7 +12,6 @@ use warnings;
 use base 'Salvation::TC::Meta::Type';
 
 use Scalar::Util 'blessed';
-use Error ':try';
 
 use Salvation::TC::Exception::WrongType::TC ();
 
@@ -103,43 +102,51 @@ sub build_validator {
 
         my ( $value ) = @_;
 
-        try {
-            $self -> check_container( $value );
+        eval { $self -> check_container( $value ) };
 
-        } catch Salvation::TC::Exception::WrongType with {
+        if( $@ ) {
 
-            my ( $e ) = @_;
+            if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-            Salvation::TC::Exception::WrongType::TC -> throw(
-                type => $self -> name(), value => $value,
-                ( $e -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
-                    prev => $e,
-                ) : () )
-            );
+                Salvation::TC::Exception::WrongType::TC -> throw(
+                    type => $self -> name(), value => $value,
+                    ( $@ -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
+                        prev => $@,
+                    ) : () )
+                );
+
+            } else {
+
+                die( $@ );
+            }
         };
 
         $self -> iterate( $value, sub {
 
             my ( $item, $key ) = @_;
 
-            try {
-                $item_type -> check( $item );
+            eval { $item_type -> check( $item ) };
 
-            } catch Salvation::TC::Exception::WrongType with {
+            if( $@ ) {
 
-                my ( $e ) = @_;
+                if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-                Salvation::TC::Exception::WrongType::TC -> throw(
-                    type => $self -> name(), value => $value,
-                    prev => Salvation::TC::Exception::WrongType::TC -> new(
-                        type => $item_type -> name(),
-                        value => $item,
-                        param_name => $key,
-                        ( $e -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
-                            prev => $e,
-                        ) : () )
-                    )
-                );
+                    Salvation::TC::Exception::WrongType::TC -> throw(
+                        type => $self -> name(), value => $value,
+                        prev => Salvation::TC::Exception::WrongType::TC -> new(
+                            type => $item_type -> name(),
+                            value => $item,
+                            param_name => $key,
+                            ( $@ -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
+                                prev => $@,
+                            ) : () )
+                        )
+                    );
+
+                } else {
+
+                    die( $@ );
+                }
             };
         } );
 

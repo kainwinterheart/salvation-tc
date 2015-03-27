@@ -1,11 +1,27 @@
 package Salvation::TC::Exception;
 
 use strict;
-use Error qw( :try );
-use base  qw( Error );
+use warnings;
 
-sub getMessage {
-  return( ref( $_[0] ) ? $_[0]->stacktrace() : '' );
+sub new {
+
+    my ( $self, %args ) = @_;
+
+    return bless( \%args, ( ref( $self ) || $self ) );
+}
+
+sub throw {
+
+    my ( $self, @rest ) = @_;
+
+    if( ref $self ) {
+
+        die( $self );
+
+    } else {
+
+        die( $self -> new( @rest ) );
+    }
 }
 
 1;

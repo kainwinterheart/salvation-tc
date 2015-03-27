@@ -10,9 +10,8 @@ use strict;
 use warnings;
 use boolean;
 
+use Scalar::Util 'blessed';
 use base 'Salvation::TC::Meta::Type::Parameterized';
-
-use Error ':try';
 
 =head1 METHODS
 
@@ -29,17 +28,13 @@ sub iterate {
 
     while( my ( $key, $item ) = each( %$value ) ) {
 
-        try {
-            $code -> ( $item, $key, sub { $clone{ $key } = $_[ 0 ] } );
+        eval { $code -> ( $item, $key, sub { $clone{ $key } = $_[ 0 ] } ) };
 
-        } catch Salvation::TC::Exception::WrongType with {
-
-            my ( $e ) = @_;
+        if( $@ ) {
 
             keys( %$value ); # сбрасываем итератор
-
-            $e -> throw();
-        };
+            die( $@ );
+        }
     }
 
     return \%clone;

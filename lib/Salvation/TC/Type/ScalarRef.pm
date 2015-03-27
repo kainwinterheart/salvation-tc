@@ -8,8 +8,6 @@ use base 'Salvation::TC::Type::Ref';
 use Salvation::TC::Exception::WrongType ();
 use Salvation::TC::Exception::WrongType::TC ();
 
-use Error ':try';
-
 
 sub Check {
 

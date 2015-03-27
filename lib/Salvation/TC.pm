@@ -34,7 +34,6 @@ use warnings;
 use boolean;
 
 use Carp 'confess';
-use Error ':try';
 use Module::Load ();
 use Scalar::Util 'blessed';
 use Class::Inspector ();
@@ -46,7 +45,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 
 =head1 METHODS
@@ -701,17 +700,21 @@ sub is {
 
     my ( $self, $value, $constraint ) = @_;
 
-    my $result = true;
+    eval { $self -> get( $constraint ) -> check( $value ) };
 
-    try {
-        $self -> get( $constraint ) -> check( $value );
+    if( $@ ) {
 
-    } catch Salvation::TC::Exception::WrongType with {
+        if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-        $result = false;
+            return false;
+
+        } else {
+
+            die( $@ );
+        }
     };
 
-    return $result;
+    return true;
 }
 
 =head2 assert( Any $value, Str $constraint )
@@ -726,19 +729,19 @@ sub assert {
 
     my ( $self, $value, $constraint ) = @_;
 
-    my $err_msg = undef;
+    eval { $self -> get( $constraint ) -> check( $value ) };
 
-    try {
-        $self -> get( $constraint ) -> check( $value );
+    if( $@ ) {
 
-    } catch Salvation::TC::Exception::WrongType with {
+        if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-        my ( $e ) = @_;
+            confess( join( "\n", ( $self -> create_error_message( $@ ), '' ) ) );
 
-        $err_msg = join( "\n", ( $self -> create_error_message( $e ), '' ) );
+        } else {
+
+            die( $@ );
+        }
     };
-
-    confess( $err_msg ) if( defined $err_msg );
 
     return true;
 }

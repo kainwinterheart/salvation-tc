@@ -12,7 +12,6 @@ use boolean;
 
 use base 'Salvation::TC::Meta';
 
-use Error ':try';
 use Scalar::Util 'blessed';
 
 =head1 METHODS
@@ -270,17 +269,19 @@ sub coerce {
 
     foreach my $rule ( @{ $self -> coercion_map() } ) {
 
-        my $type_matches = true;
+        eval { $rule -> [ 0 ] -> check( $value ) };
 
-        try {
-            $rule -> [ 0 ] -> check( $value );
+        if( $@ ) {
 
-        } catch Salvation::TC::Exception::WrongType with {
+            if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-            $type_matches = false;
+                next;
+
+            } else {
+
+                die( $@ );
+            }
         };
-
-        next unless( $type_matches );
 
         local $_ = $value; # Ради соответствия API Moose
 

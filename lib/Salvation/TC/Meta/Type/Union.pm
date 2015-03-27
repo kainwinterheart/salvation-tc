@@ -13,7 +13,6 @@ use boolean;
 use base 'Salvation::TC::Meta::Type';
 
 use Scalar::Util 'blessed';
-use Error ':try';
 use Salvation::TC::Exception::WrongType::TC ();
 
 =head1 METHODS
@@ -73,22 +72,26 @@ sub build_validator {
 
             my $check_passed = true;
 
-            try {
-                $type -> check( $value );
+            eval { $type -> check( $value ) };
 
-            } catch Salvation::TC::Exception::WrongType with {
+            if( $@ ) {
 
-                my ( $e ) = @_;
+                if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
 
-                push( @errors, Salvation::TC::Exception::WrongType::TC -> new(
-                    type => $type -> name(), value => $value,
-                    ( $e -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
-                        prev => $e,
-                    ) : () )
-                ) );
+                    push( @errors, Salvation::TC::Exception::WrongType::TC -> new(
+                        type => $type -> name(), value => $value,
+                        ( $@ -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
+                            prev => $@,
+                        ) : () )
+                    ) );
 
-                $check_passed = false;
-            };
+                    $check_passed = false;
+
+                } else {
+
+                    die( $@ );
+                }
+            }
 
             return true if( $check_passed );
         }
@@ -109,21 +112,27 @@ sub coerce {
 
     foreach my $type ( @{ $self -> types() } ) {
 
-        my $type_matches = true;
-
-        try {
+        eval {
             my $new_value = $type -> coerce( $value );
 
             $type -> check( $new_value ); # true или die
 
             $value = $new_value;
-
-        } catch Salvation::TC::Exception::WrongType with {
-
-            $type_matches = false;
         };
 
-        last if( $type_matches );
+        if( $@ ) {
+
+            if( blessed( $@ ) && $@ -> isa( 'Salvation::TC::Exception::WrongType' ) ) {
+
+                next;
+
+            } else {
+
+                die( $@ );
+            }
+        }
+
+        return $value; # Moose возвращает либо старое, либо приведённое значение
     }
 
     return $value; # Moose возвращает либо старое, либо приведённое значение

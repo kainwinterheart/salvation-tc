@@ -13,7 +13,6 @@ WriteMakefile (
     AUTHOR => [ 'Gennadiy Filatov <gfilatov@cpan.org>' ],
     LICENSE => 'mit',
     PREREQ_PM => {
-        Error => 0,
         boolean => 0,
         'Class::Inspector' => 0,
         'Devel::PartialDump' => 0,
@@ -23,7 +22,7 @@ WriteMakefile (
         'Time::Piece' => 0,
     },
     META_MERGE => {
-	"meta-spec" => { version => 2 },
+    "meta-spec" => { version => 2 },
         resources => {
             repository => {
                 type => 'git',

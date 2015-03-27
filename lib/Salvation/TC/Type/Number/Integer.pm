@@ -1,16 +1,20 @@
 package Salvation::TC::Type::Number::Integer;
 
 use strict;
-use base qw( Salvation::TC::Type::Number );
-use Salvation::TC::Exception::WrongType;
-use Error qw(:try);
+use warnings;
+
+use base 'Salvation::TC::Type::Number';
+
+use Salvation::TC::Exception::WrongType ();
+
+my $re = qr/^[-+]?\d+$/;
 
 sub Check {
 
     my ( $class, $value ) = @_;
 
-    defined( $value ) || throw Salvation::TC::Exception::WrongType ( 'type' => 'Integer', 'value' => 'UNDEFINED' );
-    ( $value =~ m/^[-+]?\d+$/ ) || throw Salvation::TC::Exception::WrongType ( 'type' => 'Number::Integer', 'value' => $value );
+    defined( $value ) || Salvation::TC::Exception::WrongType -> throw( 'type' => 'Integer', 'value' => 'UNDEFINED' );
+    ( $value =~ $re ) || Salvation::TC::Exception::WrongType -> throw( 'type' => 'Number::Integer', 'value' => $value );
 }
 
 1;
