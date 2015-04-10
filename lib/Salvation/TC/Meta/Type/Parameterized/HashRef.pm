@@ -31,7 +31,7 @@ sub iterate {
         {
             local $SIG{ '__DIE__' } = 'DEFAULT';
 
-            eval { $code -> ( $item, $key, sub { $clone{ $key } = $_[ 0 ] } ) };
+            eval { $code -> ( $item, $key, \$clone{ $key } ) };
         }
 
         if( $@ ) {

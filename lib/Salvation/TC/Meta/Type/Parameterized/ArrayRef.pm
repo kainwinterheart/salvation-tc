@@ -28,7 +28,7 @@ sub iterate {
 
     foreach my $item ( @$value ) {
 
-        $code -> ( $item, $i, sub { $clone[ $i ] = $_[ 0 ] } );
+        $code -> ( $item, $i, \$clone[ $i ] );
 
         ++$i;
     }

@@ -25,7 +25,7 @@ sub iterate {
     my ( $self, $value, $code ) = @_;
     my $clone = undef;
 
-    $code -> ( $$value, 0, sub { $clone = $_[ 0 ] } );
+    $code -> ( $$value, undef, \$clone );
 
     return \$clone;
 }

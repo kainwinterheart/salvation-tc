@@ -60,10 +60,11 @@ sub inner {
 sub iterate {
 
     my ( $self, $value, $code ) = @_;
+    my $clone = undef;
 
-    $code -> ( $value, undef );
+    $code -> ( $value, undef, \$clone );
 
-    return;
+    return $clone;
 }
 
 =head2 container_validator()
@@ -127,12 +128,12 @@ sub build_validator {
 
         $self -> iterate( $value, sub {
 
-            my ( $item, $key ) = @_;
+            # my ( $item, $key ) = @_;
 
             {
                 local $SIG{ '__DIE__' } = 'DEFAULT';
 
-                eval { $item_type -> check( $item ) };
+                eval { $item_type -> check( $_[ 0 ] ) };
             }
 
             if( $@ ) {
@@ -143,8 +144,8 @@ sub build_validator {
                         type => $self -> name(), value => $value,
                         prev => Salvation::TC::Exception::WrongType::TC -> new(
                             type => $item_type -> name(),
-                            value => $item,
-                            param_name => $key,
+                            value => $_[ 0 ],
+                            param_name => $_[ 1 ],
                             ( $@ -> isa( 'Salvation::TC::Exception::WrongType::TC' ) ? (
                                 prev => $@,
                             ) : () )
