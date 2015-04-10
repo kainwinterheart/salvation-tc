@@ -38,7 +38,11 @@ sub create_validator_from_sig {
 
             my ( @input ) = @_;
 
-            eval { $type -> check( $input[ 0 ] -> [ $local_i ] ) };
+            {
+                local $SIG{ '__DIE__' } = 'DEFAULT';
+
+                eval { $type -> check( $input[ 0 ] -> [ $local_i ] ) };
+            }
 
             if( $@ ) {
 

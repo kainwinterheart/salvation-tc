@@ -102,7 +102,11 @@ sub build_validator {
 
         my ( $value ) = @_;
 
-        eval { $self -> check_container( $value ) };
+        {
+            local $SIG{ '__DIE__' } = 'DEFAULT';
+
+            eval { $self -> check_container( $value ) };
+        }
 
         if( $@ ) {
 
@@ -125,7 +129,11 @@ sub build_validator {
 
             my ( $item, $key ) = @_;
 
-            eval { $item_type -> check( $item ) };
+            {
+                local $SIG{ '__DIE__' } = 'DEFAULT';
+
+                eval { $item_type -> check( $item ) };
+            }
 
             if( $@ ) {
 

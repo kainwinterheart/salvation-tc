@@ -15,20 +15,24 @@ sub Check {
 
     my ( $class, $date ) = @_;
 
-    eval {
+    {
+        local $SIG{ '__DIE__' } = 'DEFAULT';
 
-        die "Wrong date format. Expected day[.-/]month[./-]year time" if ( ! defined( $date ) || $date !~ $re );
+        eval {
 
-        my ( $day, $month, $year, $time ) = ( $1, $2, $3, $4 );
+            die "Wrong date format. Expected day[.-/]month[./-]year time" if ( ! defined( $date ) || $date !~ $re );
 
-        die "Month must be between 1 and 12. Current value is $month."    unless $month >= 1 && $month  <= 12;
-        die "Day must be between 1 and 31. Current value is $day."        unless $day   >= 1 && $day    <= 31;
-        die "Year must be between 1900 and 2110. Current value is $year." unless $year  >= 1900 && $year <= 2110;
+            my ( $day, $month, $year, $time ) = ( $1, $2, $3, $4 );
 
-        Salvation::TC::Type::Time->Check( $time ) if ( $time );
+            die "Month must be between 1 and 12. Current value is $month."    unless $month >= 1 && $month  <= 12;
+            die "Day must be between 1 and 31. Current value is $day."        unless $day   >= 1 && $day    <= 31;
+            die "Year must be between 1900 and 2110. Current value is $year." unless $year  >= 1900 && $year <= 2110;
 
-        defined( Time::Piece -> strptime( "$year-$month-$day", '%Y-%m-%d' ) ) || die "Unknow date format: $date.";
-    };
+            Salvation::TC::Type::Time->Check( $time ) if ( $time );
+
+            defined( Time::Piece -> strptime( "$year-$month-$day", '%Y-%m-%d' ) ) || die "Unknow date format: $date.";
+        };
+    }
 
     if( $@ ) {
 

@@ -17,14 +17,18 @@ our $BACKEND;
         $_[ 0 ] -> load_backend();
         return $BACKEND if defined $BACKEND;
 
-        if( eval { require Salvation::TC::Parser::XS; 1 } ) {
+        {
+            local $SIG{ '__DIE__' } = 'DEFAULT';
 
-            $BACKEND = 'Salvation::TC::Parser::XS';
-            $loaded = 1;
+            if( eval { require Salvation::TC::Parser::XS; 1 } ) {
 
-        } else {
+                $BACKEND = 'Salvation::TC::Parser::XS';
+                $loaded = 1;
 
-            $BACKEND = 'Salvation::TC::Parser::PP';
+            } else {
+
+                $BACKEND = 'Salvation::TC::Parser::PP';
+            }
         }
 
         $_[ 0 ] -> load_backend();
@@ -101,6 +105,8 @@ sub load_parameterizable_type_class {
     my $ns = $self -> parameterizable_type_class_ns();
     my $class = "${ns}::${word}";
     my $parameterizable_type = '';
+
+    local $SIG{ '__DIE__' } = 'DEFAULT';
 
     if(
         Class::Inspector -> loaded( $class )

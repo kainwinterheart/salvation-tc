@@ -72,7 +72,11 @@ sub build_validator {
 
             my $check_passed = true;
 
-            eval { $type -> check( $value ) };
+            {
+                local $SIG{ '__DIE__' } = 'DEFAULT';
+
+                eval { $type -> check( $value ) };
+            }
 
             if( $@ ) {
 
@@ -112,13 +116,17 @@ sub coerce {
 
     foreach my $type ( @{ $self -> types() } ) {
 
-        eval {
-            my $new_value = $type -> coerce( $value );
+        {
+            local $SIG{ '__DIE__' } = 'DEFAULT';
 
-            $type -> check( $new_value ); # true или die
+            eval {
+                my $new_value = $type -> coerce( $value );
 
-            $value = $new_value;
-        };
+                $type -> check( $new_value ); # true или die
+
+                $value = $new_value;
+            };
+        }
 
         if( $@ ) {
 

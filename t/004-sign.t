@@ -3,6 +3,17 @@
 use strict;
 use warnings;
 
+{
+    require Carp;
+
+    $SIG{ '__DIE__' } = sub {
+
+        print STDERR Carp::longmess( 'Uncaught die()' );
+
+        Test::More::fail();
+    };
+};
+
 use Test::More tests => 14;
 use Salvation::TC ();
 

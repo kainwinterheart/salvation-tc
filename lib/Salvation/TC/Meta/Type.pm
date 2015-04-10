@@ -269,7 +269,11 @@ sub coerce {
 
     foreach my $rule ( @{ $self -> coercion_map() } ) {
 
-        eval { $rule -> [ 0 ] -> check( $value ) };
+        {
+            local $SIG{ '__DIE__' } = 'DEFAULT';
+
+            eval { $rule -> [ 0 ] -> check( $value ) };
+        }
 
         if( $@ ) {
 

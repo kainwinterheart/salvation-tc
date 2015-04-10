@@ -45,7 +45,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.07;
+our $VERSION = 0.08;
 
 
 =head1 METHODS
@@ -636,16 +636,20 @@ sub get_or_create_simple_type {
 
     return $type if( defined $type );
 
-    if(
-        ! Class::Inspector -> loaded( $str )
-        && ! eval{ Module::Load::load( $str ); 1 }
-        && (
-            Class::Inspector -> loaded( $salvation_tc_type_str )
-            || eval{ Module::Load::load( $salvation_tc_type_str ); 1 }
-        )
-    ) {
+    {
+        local $SIG{ '__DIE__' } = 'DEFAULT';
 
-        $str = $salvation_tc_type_str;
+        if(
+            ! Class::Inspector -> loaded( $str )
+            && ! eval{ Module::Load::load( $str ); 1 }
+            && (
+                Class::Inspector -> loaded( $salvation_tc_type_str )
+                || eval{ Module::Load::load( $salvation_tc_type_str ); 1 }
+            )
+        ) {
+
+            $str = $salvation_tc_type_str;
+        }
     }
 
     my $validator = undef;
@@ -700,7 +704,11 @@ sub is {
 
     my ( $self, $value, $constraint ) = @_;
 
-    eval { $self -> get( $constraint ) -> check( $value ) };
+    {
+        local $SIG{ '__DIE__' } = 'DEFAULT';
+
+        eval { $self -> get( $constraint ) -> check( $value ) };
+    }
 
     if( $@ ) {
 
@@ -729,7 +737,11 @@ sub assert {
 
     my ( $self, $value, $constraint ) = @_;
 
-    eval { $self -> get( $constraint ) -> check( $value ) };
+    {
+        local $SIG{ '__DIE__' } = 'DEFAULT';
+
+        eval { $self -> get( $constraint ) -> check( $value ) };
+    }
 
     if( $@ ) {
 
