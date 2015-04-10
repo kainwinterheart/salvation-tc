@@ -28,11 +28,7 @@ sub iterate {
 
     while( my ( $key, $item ) = each( %$value ) ) {
 
-        {
-            local $SIG{ '__DIE__' } = 'DEFAULT';
-
-            eval { $code -> ( $item, $key, \$clone{ $key } ) };
-        }
+        eval { $code -> ( $item, $key, \$clone{ $key } ) };
 
         if( $@ ) {
 

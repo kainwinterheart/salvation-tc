@@ -72,11 +72,7 @@ sub build_validator {
 
             my $check_passed = true;
 
-            {
-                local $SIG{ '__DIE__' } = 'DEFAULT';
-
-                eval { $type -> check( $value ) };
-            }
+            eval { $type -> check( $value ) };
 
             if( $@ ) {
 

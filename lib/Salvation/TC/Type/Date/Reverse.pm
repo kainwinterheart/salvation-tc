@@ -13,18 +13,14 @@ sub Check {
 
     my ( $class, $date ) = @_;
 
-    {
-        local $SIG{ '__DIE__' } = 'DEFAULT';
+    eval {
 
-        eval {
+        die "Wrong date format. Expected year[.-/]month[./-]day time" if ( ! defined( $date ) || $date !~ $re );
 
-            die "Wrong date format. Expected year[.-/]month[./-]day time" if ( ! defined( $date ) || $date !~ $re );
+        my ( $year, $month, $day, $time ) = ( $1, $2, $3, $4 );
 
-            my ( $year, $month, $day, $time ) = ( $1, $2, $3, $4 );
-
-            $class->SUPER::Check( "$day.$month.$year $time" );
-        };
-    }
+        $class->SUPER::Check( "$day.$month.$year $time" );
+    };
 
     if( $@ ) {
 

@@ -17,18 +17,14 @@ our $BACKEND;
         $_[ 0 ] -> load_backend();
         return $BACKEND if defined $BACKEND;
 
-        {
-            local $SIG{ '__DIE__' } = 'DEFAULT';
+        if( eval { require Salvation::TC::Parser::XS; 1 } ) {
 
-            if( eval { require Salvation::TC::Parser::XS; 1 } ) {
+            $BACKEND = 'Salvation::TC::Parser::XS';
+            $loaded = 1;
 
-                $BACKEND = 'Salvation::TC::Parser::XS';
-                $loaded = 1;
+        } else {
 
-            } else {
-
-                $BACKEND = 'Salvation::TC::Parser::PP';
-            }
+            $BACKEND = 'Salvation::TC::Parser::PP';
         }
 
         $_[ 0 ] -> load_backend();
