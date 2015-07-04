@@ -19,7 +19,9 @@ sub Check {
 
 sub create_validator_from_sig {
 
-    my ( $class, $signature ) = @_;
+    my ( $class, $signature, $options ) = @_;
+
+    die( 'Strict signatures are not supported by ArrayRef type' ) if $options -> { 'strict' };
 
     my @checks = ();
     my $i = 0;

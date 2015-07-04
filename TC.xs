@@ -4,7 +4,7 @@ MODULE = Salvation::TC::Parser PACKAGE = Salvation::TC::Parser::XS
 
 PROTOTYPES: DISABLED
 
-AV*
+HV*
 tokenize_type_str_impl( class, str, options )
         char * class
         char * str
@@ -15,7 +15,7 @@ tokenize_type_str_impl( class, str, options )
     OUTPUT:
         RETVAL
 
-AV*
+HV*
 tokenize_signature_str_impl( class, str, options )
         char * class
         char * str

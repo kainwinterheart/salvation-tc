@@ -17,8 +17,15 @@
 
 typedef struct {
 
+    short strict_signature;
+
+} my_stack_opts_t;
+
+typedef struct {
+
     int size;
     intptr_t * data;
+    my_stack_opts_t * opts;
 
 } my_stack_t;
 

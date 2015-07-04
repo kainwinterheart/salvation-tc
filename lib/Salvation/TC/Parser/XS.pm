@@ -3,7 +3,7 @@ package Salvation::TC::Parser::XS;
 use strict;
 use warnings;
 
-our $VERSION = 0.10;
+our $VERSION = 0.12;
 
 require XSLoader;
 

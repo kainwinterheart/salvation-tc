@@ -14,7 +14,7 @@ use warnings;
     };
 };
 
-use Test::More tests => 14;
+use Test::More tests => 20;
 use Salvation::TC ();
 
 cmp_ok( Salvation::TC -> is( { asd => 1 }, 'HashRef(Int :asd!)' ), '==', 1 );
@@ -46,6 +46,13 @@ cmp_ok( Salvation::TC -> is(
         )
         el
     )' ), '==', 1 );
+
+cmp_ok( Salvation::TC -> is( { asd => 1, qwe => 2 }, 'HashRef(! Int :asd!)' ), '==', 0 );
+cmp_ok( Salvation::TC -> is( { asd => 1, qwe => 2 }, 'HashRef(! Int :qwe)' ), '==', 0 );
+cmp_ok( Salvation::TC -> is( { asd => 1 }, 'HashRef(! Int :asd!, Int :qwe)' ), '==', 1 );
+cmp_ok( Salvation::TC -> is( { asd => 1, qwe => 2 }, 'HashRef(! Int :asd!, Int :qwe)' ), '==', 1 );
+cmp_ok( Salvation::TC -> is( { asd => 1, qwe => 2, zxc => 3 }, 'HashRef(! Int :asd!, Int :qwe)' ), '==', 0 );
+cmp_ok( Salvation::TC -> is( { asd => 1, zxc => 3 }, 'HashRef(! Int :asd!, Int :qwe)' ), '==', 0 );
 
 exit 0;
 

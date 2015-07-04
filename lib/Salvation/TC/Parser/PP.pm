@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use boolean;
 
-our $VERSION = 0.10;
+our $VERSION = 0.12;
 
 =head2 tokenize_type_str_impl( Str str, Maybe[HashRef( Bool :loose )] options? )
 
@@ -203,7 +203,7 @@ sub tokenize_type_str_impl {
 
     push( @stack, { type => $word } ) if( $word ne '' );
 
-    return \@stack;
+    return { data => \@stack, opts => { strict => 0 } };
 }
 
 =head2 tokenize_signature_str_impl( Str str, Maybe[HashRef] options? )
@@ -245,6 +245,7 @@ sub tokenize_signature_str_impl {
     );
 
     my $delimiter_re = qr/^[\s,]$/;
+    my $strict_signature = 0;
 
     while( defined( my $item_type = shift( @seq ) ) ) {
 
@@ -281,7 +282,26 @@ sub tokenize_signature_str_impl {
                     }
                 }
 
-                $word .= $char;
+                if(
+                    ( scalar( @stack ) == 0 ) && ( $word eq '' )
+                    && ( $char eq '!' ) && ( $strict_signature == 0 )
+                ) {
+
+                    $strict_signature = 1;
+
+                    while( defined( my $subchar = shift( @chars ) ) ) {
+
+                        if( $subchar !~ $delimiter_re ) {
+
+                            unshift( @chars, $subchar );
+                            last;
+                        }
+                    }
+
+                } else {
+
+                    $word .= $char;
+                }
             }
 
             die( 'Invalid type string' ) if( $word eq '' );
@@ -334,7 +354,7 @@ sub tokenize_signature_str_impl {
         push( @seq, $item_type );
     }
 
-    return \@stack;
+    return { data => \@stack, opts => { strict => $strict_signature } };
 }
 
 =head2 tokenize_signature_parameter_str( Str $str )

@@ -6,6 +6,17 @@
 #include <stdio.h>
 #include <stdint.h>
 
+my_stack_t * new_my_stack() {
+
+    my_stack_opts_t * opts = malloc( sizeof( *opts ) );
+    my_stack_t * out = malloc( sizeof( *out ) );
+
+    out -> opts = opts;
+    opts -> strict_signature = 0;
+
+    return out;
+}
+
 char * call_load_parameterizable_type_class( char * class, char * word ) {
 
     dSP;
@@ -42,26 +53,6 @@ char * call_load_parameterizable_type_class( char * class, char * word ) {
     return out;
 }
 
-static HV * token_to_perl( intptr_t token );
-
-AV * tokens_to_perl( my_stack_t * stack ) {
-
-    if( stack == 0 ) croak( "Parser error\n" );
-
-    int size = stack -> size;
-
-    AV * perl_tokens = newAV();
-
-    for( int i = 0; i < size; ++i ) {
-
-        HV * perl_token = token_to_perl( stack -> data[ i ] );
-
-        av_push( perl_tokens, newRV_noinc( (SV*)perl_token ) );
-    }
-
-    return perl_tokens;
-}
-
 static inline void hash_set_sv( HV * hash, char * key, SV * value ) {
 
     hv_store( hash, key, strlen( key ), value, 0 );
@@ -77,6 +68,36 @@ static inline void hash_set_short( HV * hash, char * key, short value ) {
     hash_set_sv( hash, key, newSViv( value ) );
 }
 
+static HV * token_to_perl( intptr_t token );
+
+HV * tokens_to_perl( my_stack_t * stack ) {
+
+    if( stack == 0 ) croak( "Parser error\n" );
+
+    int size = stack -> size;
+
+    AV * perl_tokens = newAV();
+
+    for( int i = 0; i < size; ++i ) {
+
+        HV * perl_token = token_to_perl( stack -> data[ i ] );
+
+        av_push( perl_tokens, newRV_noinc( (SV*)perl_token ) );
+    }
+
+    HV * perl_token = newHV();
+    hash_set_sv( perl_token, "data\0", newRV_noinc( (SV*)perl_tokens ) );
+
+    HV * perl_opts = newHV();
+
+    my_stack_opts_t * opts = stack -> opts;
+    hash_set_short( perl_opts, "strict\0", opts -> strict_signature );
+
+    hash_set_sv( perl_token, "opts\0", newRV_noinc( (SV*)perl_opts ) );
+
+    return perl_token;
+}
+
 static HV * token_to_perl( intptr_t token ) {
 
     HV * perl_token = newHV();
@@ -88,17 +109,17 @@ static HV * token_to_perl( intptr_t token ) {
 
     } else if( token_type == TOKEN_TYPE_MAYBE ) {
 
-        AV * stack = tokens_to_perl( ((maybe_type_t*)token) -> stack );
+        HV * stack = tokens_to_perl( ((maybe_type_t*)token) -> stack );
         hash_set_sv( perl_token, "maybe\0", newRV_noinc( (SV*)stack ) );
 
     } else if( token_type == TOKEN_TYPE_PARAMETRIZABLE ) {
 
         hash_set_str( perl_token, "class\0", ((parameterizable_type_t*)token) -> class );
 
-        AV * param = tokens_to_perl( ((parameterizable_type_t*)token) -> param );
+        HV * param = tokens_to_perl( ((parameterizable_type_t*)token) -> param );
         hash_set_sv( perl_token, "param\0", newRV_noinc( (SV*)param ) );
 
-        AV * base = tokens_to_perl( ((parameterizable_type_t*)token) -> stack );
+        HV * base = tokens_to_perl( ((parameterizable_type_t*)token) -> stack );
         hash_set_sv( perl_token, "base\0", newRV_noinc( (SV*)base ) );
 
     } else if( token_type == TOKEN_TYPE_SIGNED ) {
@@ -110,7 +131,7 @@ static HV * token_to_perl( intptr_t token ) {
         HV * type = token_to_perl( ((signed_type_t*)token) -> type );
         hash_set_sv( perl_param, "type\0", newRV_noinc( (SV*)type ) );
 
-        AV * signature = tokens_to_perl( ((signed_type_t*)token) -> signature );
+        HV * signature = tokens_to_perl( ((signed_type_t*)token) -> signature );
         hash_set_sv( perl_param, "signature\0", newRV_noinc( (SV*)signature ) );
 
         hash_set_sv( perl_token, "signed\0", newRV_noinc( (SV*)perl_param ) );
@@ -119,7 +140,7 @@ static HV * token_to_perl( intptr_t token ) {
 
         signature_param_t * param = ((signature_item_t*)token) -> param;
 
-        AV * type = tokens_to_perl( ((signature_item_t*)token) -> type );
+        HV * type = tokens_to_perl( ((signature_item_t*)token) -> type );
         hash_set_sv( perl_token, "type\0", newRV_noinc( (SV*)type ) );
 
         HV * perl_param = newHV();
@@ -186,9 +207,9 @@ tokenizer_options_t * perl_to_options( HV * options ) {
     return out;
 }
 
-AV * mortalize_av( AV * v ) {
+HV * mortalize_hv( HV * v ) {
 
-    return (AV*)sv_2mortal( (SV*)v );
+    return (HV*)sv_2mortal( (SV*)v );
 }
 
 static void free_token( intptr_t token );
@@ -205,9 +226,8 @@ void free_stack_arr( intptr_t * stack, int size ) {
 
 void free_my_stack( my_stack_t * stack ) {
 
-    int size = stack -> size;
-
     free_stack_arr( stack -> data, stack -> size );
+    free( stack -> opts );
     free( stack );
 }
 

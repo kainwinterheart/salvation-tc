@@ -108,6 +108,17 @@ sub signature {
     return $self -> { 'signature' };
 }
 
+=head2 options()
+
+=cut
+
+sub options {
+
+    my ( $self ) = @_;
+
+    return $self -> { 'options' } //= {};
+}
+
 =head2 has_signature()
 
 =cut
@@ -117,6 +128,17 @@ sub has_signature {
     my ( $self ) = @_;
 
     return exists $self -> { 'signature' };
+}
+
+=head2 is_signature_strict()
+
+=cut
+
+sub is_signature_strict {
+
+    my ( $self ) = @_;
+
+    return ( $self -> has_signature() && !! ( $self -> options() -> { 'strict' } // 0 ) );
 }
 
 =head2 coercion_map()
@@ -196,7 +218,7 @@ sub length_type_generator {
     return $self -> { 'length_type_generator' };
 }
 
-=head2 sign( ArrayRef $signature )
+=head2 sign( ArrayRef signature, HashRef options )
 
 Генерирует валидатор для текущего типа на основе подписи.
 
@@ -204,7 +226,7 @@ sub length_type_generator {
 
 sub sign {
 
-    my ( $self, $signature ) = @_;
+    my ( $self, $signature, $options ) = @_;
 
     my $signed_type_generator = $self -> signed_type_generator();
 
@@ -213,7 +235,7 @@ sub sign {
         die( sprintf( 'Type %s cannot be signed', $self -> name() ) )
     }
 
-    my $signed_validator = $signed_type_generator -> ( $signature );
+    my $signed_validator = $signed_type_generator -> ( $signature, $options );
 
     return sub {
 

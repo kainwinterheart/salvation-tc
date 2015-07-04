@@ -28,8 +28,8 @@ WriteMakefile (
                 type => 'git',
                 url => 'https://github.com/kainwinterheart/salvation-tc.git',
                 web => 'https://github.com/kainwinterheart/salvation-tc',
-                bugtracker => 'https://github.com/kainwinterheart/salvation-tc/issues',
             },
+            bugtracker => 'https://github.com/kainwinterheart/salvation-tc/issues',
         },
     },
 );

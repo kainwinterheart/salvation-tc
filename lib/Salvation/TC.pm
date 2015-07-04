@@ -45,7 +45,7 @@ use Salvation::TC::Meta::Type::Maybe ();
 use Salvation::TC::Meta::Type::Union ();
 use Salvation::TC::Exception::WrongType ();
 
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 
 =head1 METHODS
@@ -225,7 +225,7 @@ sub gen_salvation_tc_type_signer {
 
     return sub {
 
-        $class -> create_validator_from_sig( $_[ 0 ] );
+        $class -> create_validator_from_sig( @_[ 0, 1 ] );
     };
 }
 
@@ -496,7 +496,7 @@ sub parse_type {
     );
 }
 
-=head2 materialize_type( ArrayRef[HashRef] $tokens )
+=head2 materialize_type( HashRef( HashRef :opts!, ArrayRef[HashRef] :data! ) input )
 
 Превращает токены �� классы типов.
 
@@ -504,7 +504,8 @@ sub parse_type {
 
 sub materialize_type {
 
-    my ( $self, $tokens ) = @_;
+    my ( $self, $input ) = @_;
+    my ( $opts, $tokens ) = @$input{ 'opts', 'data' };
 
     if( scalar( @$tokens ) == 1 ) {
 
@@ -530,20 +531,26 @@ sub materialize_type {
             return ( $self -> get_type( $name ) // $self -> setup_parameterized_type(
                 $name, $tokens -> [ 0 ] -> { 'class' }, base => $base,
                 validator => $base -> validator(), inner => $inner,
+                length_type_generator => $base -> length_type_generator(),
             ) );
 
         } elsif( exists $tokens -> [ 0 ] -> { 'signed' } ) {
 
             my $data = $tokens -> [ 0 ] -> { 'signed' };
 
-            my $type = $self -> materialize_type( [ $data -> { 'type' } ] );
+            my $type = $self -> materialize_type( {
+                opts => {},
+                data => [ $data -> { 'type' } ],
+            } );
             my $name = sprintf( '%s%s', $type -> name(), $data -> { 'source' } );
 
             my $present_type = $self -> get_type( $name );
 
             return $present_type if( defined $present_type );
 
-            foreach my $el ( @{ $data -> { 'signature' } } ) {
+            my ( $sig_tokens, $sig_opts ) = @{ $data -> { 'signature' } }{ 'data', 'opts' };
+
+            foreach my $el ( @$sig_tokens ) {
 
                 $el -> { 'type' } = $self -> materialize_type( $el -> { 'type' } );
             }
@@ -557,17 +564,20 @@ sub materialize_type {
                     ref( $type ),
                     inner => $type -> inner(),
                 ) : () ),
-                validator => $type -> sign( $data -> { 'signature' } ),
+                validator => $type -> sign( $sig_tokens, $sig_opts ),
                 length_type_generator => $type -> length_type_generator(),
-                signature => $data -> { 'signature' },
-                base => $type,
+                signature => $sig_tokens,
+                base => $type, options => $sig_opts,
             );
 
         } elsif( exists $tokens -> [ 0 ] -> { 'length' } ) {
 
             my $data = $tokens -> [ 0 ] -> { 'length' };
 
-            my $type = $self -> materialize_type( [ $data -> { 'type' } ] );
+            my $type = $self -> materialize_type( {
+                opts => {},
+                data => [ $data -> { 'type' } ],
+            } );
             my $name = sprintf( '%s{%s,%s}', $type -> name(), $data -> { 'min' }, ( $data -> { 'max' } // '' ) );
 
             my $method = ( $type -> isa( 'Salvation::TC::Meta::Type::Parameterized' )
@@ -583,6 +593,7 @@ sub materialize_type {
                 signed_type_generator => $type -> signed_type_generator(),
                 ( $type -> has_signature() ? (
                     signature => $type -> signature(),
+                    options => $type -> options(),
                 ) : () ),
                 base => $type,
             ) );
@@ -600,7 +611,10 @@ sub materialize_type {
 
         foreach my $token ( @$tokens ) {
 
-            push( @types, $self -> materialize_type( [ $token ] ) );
+            push( @types, $self -> materialize_type( {
+                opts => {},
+                data => [ $token ],
+            } ) );
         }
 
         my $name = join( '|', map( { $_ -> name() } @types ) );

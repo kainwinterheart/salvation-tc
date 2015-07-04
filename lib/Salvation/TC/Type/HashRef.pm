@@ -19,9 +19,9 @@ sub Check {
 
 sub create_validator_from_sig {
 
-    my ( $class, $signature ) = @_;
+    my ( $class, $signature, $options ) = @_;
 
-    my @checks = ();
+    my %checks = ();
 
     foreach my $el ( @$signature ) {
 
@@ -60,33 +60,62 @@ sub create_validator_from_sig {
             };
         };
 
+        if( exists $checks{ $param -> { 'name' } } ) {
+
+            die( 'Invalid signature: parameter ' . $param -> { 'name' } . ' is specified twice' );
+        }
+
         if( $param -> { 'optional' } ) {
 
-            push( @checks, $wrap -> ( sub {
+            $checks{ $param -> { 'name' } } = $wrap -> ( sub {
 
                 if( exists $_[ 0 ] -> { $param -> { 'name' } } ) {
 
                     $type -> check( $_[ 0 ] -> { $param -> { 'name' } } )
                 }
 
-            } ) );
+            } );
 
         } else {
 
-            push( @checks, $wrap -> ( sub {
+            $checks{ $param -> { 'name' } } = $wrap -> ( sub {
 
                 exists $_[ 0 ] -> { $param -> { 'name' } } || Salvation::TC::Exception::WrongType
                     -> throw( 'type' => $type -> name(), 'value' => '(not exists)' );
 
                 $type -> check( $_[ 0 ] -> { $param -> { 'name' } } );
 
-            } ) );
+            } );
         }
     }
+
+    my @checks = values( %checks );
 
     return sub {
 
         $_ -> ( $_[ 0 ] ) for @checks;
+
+        if( $options -> { 'strict' } ) {
+
+            eval {
+                while( my ( $key ) = each( %{ $_[ 0 ] } ) ) {
+
+                    unless( exists $checks{ $key } ) {
+
+                        Salvation::TC::Exception::WrongType -> throw(
+                            'type' => "HashRef.${key}",
+                            'value' => '(key is not expected)'
+                        );
+                    }
+                }
+            };
+
+            if( $@ ) {
+
+                keys( %{ $_[ 0 ] } ); # reset iterator
+                die( $@ );
+            }
+        }
 
         1;
     };

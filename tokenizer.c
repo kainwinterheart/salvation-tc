@@ -381,7 +381,7 @@ static my_stack_t * tokenize_type_str( char * class, const char * s, tokenizer_o
 
     free( parameterizable_type );
 
-    my_stack_t * out = malloc( sizeof( *out ) );
+    my_stack_t * out = new_my_stack();
 
     out -> size = stack_size;
     out -> data = stack;
@@ -439,6 +439,7 @@ static my_stack_t * tokenize_signature_str( char * class, const char * s, tokeni
 
     short seq = SIG_SEQ_MIN;
     short done = 0;
+    short strict_signature = 0;
 
     while( pos <= length ) {
 
@@ -508,7 +509,28 @@ static my_stack_t * tokenize_signature_str( char * class, const char * s, tokeni
                     break;
                 }
 
-                append( &type, chr );
+                if(
+                    ( stack_size == 0 ) && ( strlen( type ) == 0 )
+                    && ( chr == '!' ) && ( strict_signature == 0 )
+                ) {
+
+                    strict_signature = 1;
+
+                    while( pos < length ) {
+
+                        char subchr = s[ pos ++ ];
+
+                        if( !is_space( subchr ) && !is_delim( subchr ) ) {
+
+                            --pos;
+                            break;
+                        }
+                    }
+
+                } else {
+
+                    append( &type, chr );
+                }
             }
 
             if( done == 1 ) break;
@@ -604,10 +626,11 @@ static my_stack_t * tokenize_signature_str( char * class, const char * s, tokeni
     free( type );
     free( name );
 
-    my_stack_t * out = malloc( sizeof( *out ) );
+    my_stack_t * out = new_my_stack();
 
     out -> size = stack_size;
     out -> data = stack;
+    out -> opts -> strict_signature = strict_signature;
 
     return out;
 }
@@ -672,22 +695,22 @@ static inline signature_param_t * tokenize_signature_parameter_str( const char *
     return token;
 }
 
-AV * perl_tokenize_type_str( char * class, const char * s, HV * options ) {
+HV * perl_tokenize_type_str( char * class, const char * s, HV * options ) {
 
     my_stack_t * stack = tokenize_type_str( class, s, perl_to_options( options ) );
 
-    AV * out = mortalize_av( tokens_to_perl( stack ) );
+    HV * out = mortalize_hv( tokens_to_perl( stack ) );
 
     if( stack != 0 ) free_my_stack( stack );
 
     return out;
 }
 
-AV * perl_tokenize_signature_str( char * class, const char * s, HV * options ) {
+HV * perl_tokenize_signature_str( char * class, const char * s, HV * options ) {
 
     my_stack_t * stack = tokenize_signature_str( class, s, perl_to_options( options ) );
 
-    AV * out = mortalize_av( tokens_to_perl( stack ) );
+    HV * out = mortalize_hv( tokens_to_perl( stack ) );
 
     if( stack != 0 ) free_my_stack( stack );
 
